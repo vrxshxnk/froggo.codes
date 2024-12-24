@@ -31,9 +31,9 @@ const faqList = [
         The instructor has experience of 10+ years in the industry and mentored
         200+ students, who have gotten placed at prestigious companies. The
         pacing is perfect for beginners and we take it from the very basics. The
-        videos aren't compressed to reduce the syllabus, most things you need at
-        your first job are covered, and you learn not just coding, but also
-        skills to apply for a job, like taking an interview, or building a
+        videos aren&apos;t compressed to reduce the syllabus, most things you
+        need at your first job are covered, and you learn not just coding, but
+        also skills to apply for a job, like taking an interview, or building a
         resume.{" "}
       </div>
     ),
@@ -60,8 +60,8 @@ const faqList = [
     question: "What will I learn?",
     answer: (
       <div className="space-y-2 leading-relaxed">
-        You'll learn full-stack development using Python, Django, HTML, CSS,
-        etc. For more refer to the syllabus section above!
+        You&apos;ll learn full-stack development using Python, Django, HTML,
+        CSS, etc. For more refer to the syllabus section above!
       </div>
     ),
   },
@@ -99,7 +99,8 @@ const faqList = [
     question: "I have another question",
     answer: (
       <div className="space-y-2 leading-relaxed">
-        Feel free to contact us whenever you wish, and we'll be there to help:
+        Feel free to contact us whenever you wish, and we&apos;ll be there to
+        help:
         <br />
         hi@froggo.codes
       </div>
