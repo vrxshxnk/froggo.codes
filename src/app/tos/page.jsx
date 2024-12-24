@@ -63,7 +63,7 @@ const TOS = () => {
         FroggoCodes does not guarantee or warrant that our products or services
         will meet your expectations or that the operation of our products will
         be a 100% uninterrupted or error-free. We provide our products and
-        services "as is" without any warranties of any kind.
+        services &quot;as is&quot; without any warranties of any kind.
         <br />
         <br />
         FroggoCodes does not guarantee that the user will get a job after buying

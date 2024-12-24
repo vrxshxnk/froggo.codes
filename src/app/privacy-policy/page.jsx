@@ -52,7 +52,7 @@ const PrivacyPolicy = () => {
         We do not share your data with any other parties.
         <br />
         <br />
-        <h2 className="font-bold">4. Children's Privacy</h2>
+        <h2 className="font-bold">4. Children&apos;s Privacy</h2>
         We do not collect any data from children.
         <br />
         <br />
