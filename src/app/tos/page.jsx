@@ -33,10 +33,10 @@ const TOS = () => {
         <h2 className="font-bold"> Terms & Services </h2>
         <h2 className="font-bold"> Effective Date: January 1, 2025 </h2>
         <br />
-        Welcome to FroggoCodes, operated by froggo.codes ("Website"). By
-        accessing or using our Website, you agree to comply with and be bound by
-        the following terms and conditions ("Terms & Services"). If you do not
-        agree with these terms, please do not use our Website.
+        Welcome to FroggoCodes, operated by froggo.codes (&quot;Website&quot;).
+        By accessing or using our Website, you agree to comply with and be bound
+        by the following terms and conditions (&quot;Terms & Services&quot;). If
+        you do not agree with these terms, please do not use our Website.
         <br />
         <br />
         <h2 className="font-bold"> 1. Ownership and Usage </h2>

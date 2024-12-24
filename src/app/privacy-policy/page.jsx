@@ -33,8 +33,8 @@ const PrivacyPolicy = () => {
         <h2 className="font-bold">Effective Date: January 1, 2025</h2>
         <br />
         Welcome to FroggoCodes, accessible from https://froggo.codes
-        ("Website"). Your privacy is important to us, and this Privacy Policy
-        outlines how we collect, use, and protect your information.
+        (&quot;Website&quot;). Your privacy is important to us, and this Privacy
+        Policy outlines how we collect, use, and protect your information.
         <br />
         <br />
         <h2 className="font-bold">1. Information We Collect</h2>
