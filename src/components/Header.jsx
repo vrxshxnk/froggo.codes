@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-// import { signIn } from "next-auth/react";
-// import config from "@/config";
-// import { sendEmail } from "@/libs/mailgun";
+import { supabase } from "@/libs/supabase";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const links = [
   {
@@ -29,6 +29,36 @@ const links = [
   //   label: "Contact",
   // },
 ];
+
+const AuthButton = () => {
+  const { user, signOut } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  return user ? (
+    <button
+      onClick={signOut}
+      className={`btn ${
+        isScrolled
+          ? "bg-white hover:bg-emerald-100 text-emerald-700 text-sm py-1 px-2 rounded-md"
+          : "bg-white hover:bg-emerald-100 text-emerald-700 text-md py-2 px-4 rounded-md"
+      } transition-all duration-300 ease-in-out`}
+    >
+      Sign Out
+    </button>
+  ) : (
+    <Link href="/auth">
+      <button
+        className={`btn ${
+          isScrolled
+            ? "bg-white hover:bg-emerald-100 text-emerald-700 text-sm py-1 px-2 rounded-md"
+            : "bg-white hover:bg-emerald-100 text-emerald-700 text-md py-2 px-4 rounded-md"
+        } transition-all duration-300 ease-in-out`}
+      >
+        Sign In
+      </button>
+    </Link>
+  );
+};
 
 const Header = () => {
   const searchParams = useSearchParams();
@@ -61,21 +91,6 @@ const Header = () => {
     }
     setIsOpen(false); // Close mobile menu if open
   };
-
-  const cta = (
-    <button
-      // onClick={() =>
-      //   signIn(undefined, { callbackUrl: config.auth.callbackUrl })
-      // }
-      className={`btn ${
-        isScrolled
-          ? "bg-white hover:bg-emerald-100 text-emerald-700 text-sm py-1 px-2 rounded-md"
-          : "bg-white hover:bg-emerald-100 text-emerald-700 text-md py-2 px-4 rounded-md"
-      } transition-all duration-300 ease-in-out`}
-    >
-      Get started
-    </button>
-  );
 
   return (
     <header
@@ -150,7 +165,9 @@ const Header = () => {
             </a>
           ))}
         </div>
-        <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
+        <div className="hidden lg:flex lg:justify-end lg:flex-1">
+          <AuthButton />
+        </div>
       </nav>
       <div className={`relative z-50 ${isOpen ? "" : "hidden"}`}>
         <div
@@ -207,7 +224,9 @@ const Header = () => {
               </div>
             </div>
             <div className="divider"></div>
-            <div className="flex flex-col w-full">{cta} </div>
+            <div className="flex flex-col w-full">
+              <AuthButton />
+            </div>
           </div>
         </div>
       </div>
