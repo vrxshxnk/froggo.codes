@@ -42,20 +42,19 @@ export const courseService = {
     };
   },
 
-  async getAllCourses(userId) {
-    const coursesSnapshot = await getDocs(collection(db, "courses"));
-    const userCoursesRef = collection(db, "user_courses");
-    const q = query(userCoursesRef, where("user_id", "==", userId));
-    const userCoursesSnapshot = await getDocs(q);
-
-    const enrolledCourseIds = new Set(
-      userCoursesSnapshot.docs.map((doc) => doc.data().course_id)
+  async getCourseProgress(userId, courseId) {
+    const progressRef = collection(db, "user_progress");
+    const q = query(
+      progressRef,
+      where("user_id", "==", userId),
+      where("course_id", "==", courseId)
     );
-
-    return coursesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      isEnrolled: enrolledCourseIds.has(doc.id),
+    const snapshot = await getDocs(q);
+    
+    return snapshot.docs.map(doc => ({
+      video_id: doc.data().video_id,
+      completed: doc.data().completed,
+      last_watched: doc.data().last_watched
     }));
   },
 
@@ -85,4 +84,14 @@ export const courseService = {
       { merge: true }
     );
   },
+
+  async getAllCourses() {
+    const coursesRef = collection(db, "courses");
+    const snapshot = await getDocs(coursesRef);
+    
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  }
 };

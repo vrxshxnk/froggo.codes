@@ -1,184 +1,264 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation"; // Add this import
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import ResendVerification from "./ResendVerification";
 
 const SignInModal = ({ isOpen, onClose }) => {
-  const { signIn, checkUser, resetPassword } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [dob, setDob] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [error, setError] = useState("");
+  const [showResend, setShowResend] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const { signIn, signUp } = useAuth();
   const router = useRouter();
 
-  const handleEmailSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
-    setPassword("");
-
-    try {
-      const { exists, error } = await checkUser(email);
-      if (error) throw error;
-
-      if (exists) {
-        setShowPasswordForm(true);
-        setMessage("Welcome back! Please enter your password to continue.");
-      } else {
-        setMessage("Account not found. Redirecting to sign up...");
-        setTimeout(() => {
-          router.push("/signup");
-          onClose();
-        }, 2000);
+    if (isSignUp) {
+      if (password !== confirmPassword) {
+        setError("Passwords do not match");
+        return;
       }
-    } catch (error) {
-      console.error("Email check error:", error); // Debug log
-      setMessage(error.message || "Error checking email. Please try again.");
-    } finally {
+      setLoading(true);
+      // Store the email for verification message
+      setSignupEmail(email);
+      setSignupPassword(password);
+      // Show verification message immediately
+      setSignupSuccess(true);
       setLoading(false);
+
+      // Process signup in the background
+      signUp(email, password, fullName, dob).catch((error) => {
+        console.error("Signup error:", error);
+      });
+    } else {
+      setLoading(true);
+      setError("");
+      try {
+        await signIn(email, password);
+        setError("Successfully signed in! Redirecting...");
+        setTimeout(() => {
+          resetForm();
+          onClose();
+          window.location.href = "/";
+        }, 1000);
+      } catch (error) {
+        if (error.message.includes("verify your email")) {
+          setShowResend(true);
+        }
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const handleSignIn = async (e) => {
+  const handleToggleMode = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const { error } = await signIn(email, password);
-      if (error) throw error;
-      onClose();
-    } catch (error) {
-      setMessage(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleForgotPassword = async () => {
-    setLoading(true);
-    setMessage("");
-    
-    try {
-      const { error } = await resetPassword(email);
-      if (error) throw error;
-      setMessage("Password reset link sent to your email!");
-    } catch (error) {
-      setMessage(error.message || "Error sending reset link. Please try again.");
-    } finally {
-      setLoading(false);
+    setIsSignUp(!isSignUp);
+    setSignupSuccess(false);
+    setError("");
+    setShowResend(false);
+    // Don't reset the form completely, just clear the additional fields
+    if (!isSignUp) {
+      setFullName("");
+      setDob("");
     }
   };
 
   const resetForm = () => {
-    setShowPasswordForm(false);
     setEmail("");
     setPassword("");
-    setMessage("");
+    setConfirmPassword("");
+    setFullName("");
+    setDob("");
+    setError("");
+    setShowResend(false);
+    setIsSignUp(false);
+    setLoading(false);
+    setSignupSuccess(false);
   };
+
+  // Handle modal close
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  useEffect(() => {
+    // Reset form when modal is closed
+    if (!isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
+  if (signupSuccess) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-[#181818] rounded-lg p-8 max-w-md w-full border border-white/10 shadow-lg shadow-black/50">
+          <div className="text-center space-y-4">
+            <div className="text-emerald-500 text-6xl mb-4">✉️</div>
+            <h3 className="text-white text-xl font-semibold">
+              Verify Your Email
+            </h3>
+            <p className="text-gray-300">
+              Please check your email to verify your account before signing in.
+            </p>
+            <button
+              onClick={() => {
+                resetForm();
+                handleClose();
+              }}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md transition-colors mt-4"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-[#181818] p-8 rounded-lg w-full max-w-md border border-white">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-[#181818] rounded-lg p-8 max-w-md w-full border border-white/20 shadow-lg shadow-black/50">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">
-            {showPasswordForm ? "Sign In" : "Log In"}
+            {isSignUp ? "Create Account" : "Sign In"}
           </h2>
           <button
-            onClick={() => {
-              onClose();
-              resetForm();
-            }}
-            className="text-white hover:text-gray-300"
+            onClick={handleClose}
+            className="text-gray-400 hover:text-white"
+            type="button"
           >
-            ✕
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </button>
         </div>
 
-        {!showPasswordForm ? (
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-white mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 bg-neutral-800 border border-white/10 rounded-md text-white"
+              required
+            />
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? "Loading..." : "Continue"}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleSignIn} className="space-y-4">
+          {isSignUp && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-800 border border-white/10 rounded-md text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-800 border border-white/10 rounded-md text-white"
+                  required
+                />
+              </div>
+            </>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 bg-neutral-800 border border-white/10 rounded-md text-white"
+              required
+            />
+          </div>
+
+          {isSignUp && (
             <div>
-              <label className="block text-sm font-medium text-white mb-1">
-                Password
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Confirm Password
               </label>
               <input
                 type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 bg-neutral-800 border border-white/10 rounded-md text-white"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
               />
             </div>
+          )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          {error && (
+            <p
+              className={`text-sm ${
+                error.includes("Successfully")
+                  ? "text-emerald-500"
+                  : "text-red-500"
+              }`}
             >
-              {loading ? "Loading..." : "Sign In"}
-            </button>
+              {error}
+            </p>
+          )}
 
-            <div className="flex justify-between items-center mt-2">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="text-emerald-500 hover:underline text-sm"
-              >
-                Back to Email
-              </button>
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                className="text-emerald-500 hover:underline text-sm"
-              >
-                Forgot Password?
-              </button>
-            </div>
-          </form>
-        )}
-
-        {message && (
-          <p className="text-center text-sm text-emerald-500 mt-4">{message}</p>
-        )}
-
-        <div className="mt-6 pt-6 border-t border-white/10">
           <button
-            onClick={() => {
-              router.push("/signup");
-              onClose();
-            }}
-            className="w-full bg-white hover:bg-emerald-100 text-emerald-700 py-2 px-4 rounded-md transition-all duration-300 ease-in-out"
+            type="submit"
+            disabled={loading}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md transition-colors"
           >
-            New here? Sign Up
+            {loading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
           </button>
-        </div>
+
+          <button
+            type="button"
+            onClick={handleToggleMode}
+            className="w-full text-emerald-500 hover:text-emerald-400 text-sm"
+          >
+            {isSignUp
+              ? "Already have an account? Sign in"
+              : "Don't have an account? Sign up"}
+          </button>
+        </form>
       </div>
     </div>
   );

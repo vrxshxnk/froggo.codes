@@ -15,20 +15,20 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
-export const auth = getAuth(app);
+// Initialize services with specific region and settings
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 
 // Initialize Analytics
 let analytics = null;
-if (typeof window !== 'undefined') {
-  const { getAnalytics } = require('firebase/analytics');
+if (typeof window !== "undefined") {
+  const { getAnalytics } = require("firebase/analytics");
   try {
     analytics = getAnalytics(app);
   } catch (error) {
-    console.warn('Analytics failed to initialize:', error);
+    console.warn("Analytics failed to initialize:", error);
     analytics = null;
   }
 }
 
-export { analytics };
+// export { analytics };

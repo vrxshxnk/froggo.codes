@@ -29,21 +29,28 @@ const Header = () => {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false); 
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { user, signOut } = useAuth();
 
   useEffect(() => {
-    if (searchParams.get('signin') === 'true') {
+    if (searchParams.get("signin") === "true") {
       setIsAuthModalOpen(true);
     }
   }, [searchParams]);
 
   const navigationLinks = [
+    ...(user
+      ? [
+          {
+            href: "/my-courses",
+            label: "Course",
+            isFullPath: true,
+            isCourseLink: true,
+          },
+          { href: "/profile", label: "Profile", isFullPath: true },
+        ]
+      : []),
     ...links,
-    ...(user ? [
-      { href: "/my-courses", label: "Courses", isFullPath: true }, // Changed from "My Courses" to "Courses"
-      { href: "/profile", label: "Profile", isFullPath: true }
-    ] : []),
   ];
 
   useEffect(() => {
@@ -73,9 +80,9 @@ const Header = () => {
     setIsOpen(false); // Close mobile menu if open
   };
 
-  const handleAuthClick = async () => {
+  const handleAuthClick = () => {
     if (user) {
-      await signOut();
+      signOut();
     } else {
       setIsAuthModalOpen(true);
     }
@@ -109,7 +116,9 @@ const Header = () => {
 
   return (
     <>
-      <div className="h-[72px]"> {/* Spacer div to prevent content jump */}
+      <div className="h-[72px]">
+        {" "}
+        {/* Spacer div to prevent content jump */}
         <header
           className={`${
             isScrolled ? "bg-[#181818] bg-opacity-95" : "bg-[#181818]"
@@ -174,8 +183,14 @@ const Header = () => {
                 <a
                   href={link.isFullPath ? link.href : `#${link.href}`}
                   key={link.href}
-                  onClick={(e) => !link.isFullPath && handleScroll(e, link.href)}
-                  className="text-white hover:underline cursor-pointer"
+                  onClick={(e) =>
+                    !link.isFullPath && handleScroll(e, link.href)
+                  }
+                  className={`${
+                    link.isCourseLink
+                      ? "text-white hover:text-white hover:underline"
+                      : "text-white hover:underline"
+                  } cursor-pointer`}
                   title={link.label}
                 >
                   {link.label}
@@ -226,13 +241,20 @@ const Header = () => {
               </div>
               <div className="flow-root mt-6 w-full">
                 <div className="py-4">
+                  // In the mobile menu section
                   <div className="flex flex-col gap-y-4 items-center text-white w-full">
                     {navigationLinks.map((link) => (
                       <a
                         href={link.isFullPath ? link.href : `#${link.href}`}
                         key={link.href}
-                        onClick={(e) => !link.isFullPath && handleScroll(e, link.href)}
-                        className="text-emerald-500 hover:underline w-full text-center cursor-pointer"
+                        onClick={(e) =>
+                          !link.isFullPath && handleScroll(e, link.href)
+                        }
+                        className={`${
+                          link.isCourseLink
+                            ? "text-emerald-400 font-semibold hover:text-emerald-300"
+                            : "text-emerald-500 hover:underline"
+                        } w-full text-center cursor-pointer`}
                         title={link.label}
                       >
                         {link.label}
