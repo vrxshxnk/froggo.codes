@@ -1,9 +1,23 @@
+"use client";
+
 import Image from "next/image";
-// import config from "@/config";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 const Hero = () => {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const handleButtonClick = () => {
+    if (user) {
+      router.push("/payment");
+    } else {
+      // Use the correct search parameter format
+      router.push("/?signin=true", { scroll: false });
+    }
+  };
+
   return (
-    // Adjusted classes for extra large screens: increased gap, reduced padding and margins
     <div className="align-middle">
       <div
         id="about"
@@ -31,7 +45,7 @@ const Hero = () => {
             {/* ⏳ */}
           </h1>
           <p className="text-md lg:text-lg xl:text-xl text-white opacity-80 leading-snug">
-            🧑🏻‍💻 Become Job Ready In 30 Days.
+            🧑🏻‍💻 30 Days of intensive Python training.
             <br />
             <br />
             🔥 Go from basics of Python to building full-stack apps.
@@ -40,8 +54,11 @@ const Hero = () => {
             💪🏼 Learn from 10+ years of industry experience.{" "}
             {/* <span className="text-3xl">🍪</span> */}
           </p>
-          <button className="btn btn-primary btn-wide bg-emerald-500 text-white font-bold hover:bg-emerald-600 px-2 py-2 rounded-md">
-            Become Job Ready!
+          <button
+            onClick={handleButtonClick}
+            className="btn btn-primary btn-wide bg-emerald-500 text-white font-bold hover:bg-emerald-600 px-2 py-2 rounded-md"
+          >
+            {user ? "Get Started Now!" : "Sign Up Now!"}
           </button>
         </div>
         <div className="bg-[#181818] relative">
