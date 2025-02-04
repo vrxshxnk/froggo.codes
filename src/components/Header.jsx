@@ -62,20 +62,20 @@ const Header = () => {
     setIsOpen(false); // Close mobile menu if open
   };
 
-  const cta = (
-    <button
-      // onClick={() =>
-      //   signIn(undefined, { callbackUrl: config.auth.callbackUrl })
-      // }
-      className={`btn ${
-        isScrolled
-          ? "bg-white hover:bg-emerald-100 text-emerald-700 text-sm py-1 px-2 rounded-md"
-          : "bg-white hover:bg-emerald-100 text-emerald-700 text-md py-2 px-4 rounded-md"
-      } transition-all duration-300 ease-in-out`}
-    >
-      Get started
-    </button>
-  );
+  // const cta = (
+  //   <button
+  //     // onClick={() =>
+  //     //   signIn(undefined, { callbackUrl: config.auth.callbackUrl })
+  //     // }
+  //     className={`btn ${
+  //       isScrolled
+  //         ? "bg-white hover:bg-emerald-100 text-emerald-700 text-sm py-1 px-2 rounded-md"
+  //         : "bg-white hover:bg-emerald-100 text-emerald-700 text-md py-2 px-4 rounded-md"
+  //     } transition-all duration-300 ease-in-out`}
+  //   >
+  //     Get started
+  //   </button>
+  // );
 
   return (
     <header
@@ -150,7 +150,7 @@ const Header = () => {
             </a>
           ))}
         </div>
-        <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
+        {/* <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div> */}
       </nav>
       <div className={`relative z-50 ${isOpen ? "" : "hidden"}`}>
         <div
@@ -207,7 +207,6 @@ const Header = () => {
               </div>
             </div>
             <div className="divider"></div>
-            <div className="flex flex-col w-full">{cta} </div>
           </div>
         </div>
       </div>

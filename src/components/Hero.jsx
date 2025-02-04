@@ -38,11 +38,8 @@ const Hero = () => {
             <br />
             <br />
             💪🏼 Learn from 10+ years of industry experience.{" "}
-            {/* <span className="text-3xl">🍪</span> */}
           </p>
-          <button className="btn btn-primary btn-wide bg-emerald-500 text-white font-bold hover:bg-emerald-600 px-2 py-2 rounded-md">
-            Become Job Ready!
-          </button>
+          {/* Button removed */}
         </div>
         <div className="bg-[#181818] relative">
           <Image
