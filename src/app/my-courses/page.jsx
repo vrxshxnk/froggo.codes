@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { courseService } from "@/libs/courseService";
@@ -23,43 +23,59 @@ const MyCourses = () => {
     const fetchCourses = async () => {
       if (user) {
         try {
-          // Fetch user's enrolled courses with progress
-          const userCourses = await courseService.getUserCourses(user.id);
-          const coursesWithProgress = await Promise.all(
-            userCourses.map(async (course) => {
-              const progress = await courseService.getCourseProgress(
-                user.id,
-                course.course_id
-              );
-              const completedVideos = progress.filter((p) => p.completed).length;
-              const progressPercentage =
-                progress.length > 0
-                  ? Math.round((completedVideos / progress.length) * 100)
-                  : 0;
-
-              return {
-                id: course.course_id,
-                title: course.courses.title,
-                description: course.courses.description,
-                thumbnail: course.courses.thumbnail || "🐍",
-                progress: progressPercentage,
-                lastAccessed: course.last_accessed,
-              };
-            })
-          );
-          setMyCourses(coursesWithProgress);
-
-          // Fetch all courses and mark enrolled ones
+          console.log("Fetching courses for user:", user.id);
+          
+          // Fetch all courses first
           const allAvailableCourses = await courseService.getAllCourses();
-          const enrolledCourseIds = new Set(coursesWithProgress.map(c => c.id));
+          console.log("All courses fetched:", allAvailableCourses);
           
           setAllCourses(allAvailableCourses.map(course => ({
             ...course,
-            isEnrolled: enrolledCourseIds.has(course.id),
+            isEnrolled: false, // Will update this after getting user courses
             thumbnail: course.thumbnail || "🐍"
           })));
+
+          // Then fetch user's enrolled courses
+          const userCourses = await courseService.getUserCourses(user.id);
+          console.log("User courses fetched:", userCourses);
+
+          if (userCourses && userCourses.length > 0) {
+            const coursesWithProgress = await Promise.all(
+              userCourses.map(async (course) => {
+                const progress = await courseService.getCourseProgress(
+                  user.id,
+                  course.course_id
+                );
+              
+                return {
+                  id: course.course_id,
+                  title: course.courses.title,
+                  description: course.courses.description,
+                  thumbnail: course.courses.thumbnail || "🐍",
+                  progress: progress.percentage,
+                  lastAccessed: course.last_accessed,
+                };
+              })
+            );
+            
+            setMyCourses(coursesWithProgress);
+            
+            // Update enrolled status in allCourses
+            const enrolledCourseIds = new Set(coursesWithProgress.map(c => c.id));
+            setAllCourses(prev => 
+              prev.map(course => ({
+                ...course,
+                isEnrolled: enrolledCourseIds.has(course.id)
+              }))
+            );
+          }
         } catch (error) {
-          console.error("Error fetching courses:", error);
+          console.error("Detailed error:", {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            code: error.code
+          });
         }
         setIsLoading(false);
       }
@@ -70,7 +86,21 @@ const MyCourses = () => {
 
   const handleEnroll = async (courseId) => {
     try {
-      await courseService.updateLastAccessed(user.id, courseId);
+      // Get the course details first
+      const course = allCourses.find(c => c.id === courseId);
+      if (!course) throw new Error('Course not found');
+
+      await courseService.updateLastAccessed(user.id, courseId, {
+        user_id: user.id,
+        course_id: courseId,
+        last_accessed: new Date().toISOString(),
+        courses: {
+          title: course.title,
+          description: course.description,
+          thumbnail: course.thumbnail
+        }
+      });
+      
       // Refresh the courses data
       window.location.reload();
     } catch (error) {

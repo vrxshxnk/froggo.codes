@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is accessing their own data
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isAuthenticated();
+      allow update: if isOwner(userId);
+      allow delete: if false; // Prevent user deletion through client
+    }
+
+    // Courses collection
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admin can modify courses through admin panel
+    }
+
+    // User courses (enrollments)
+    match /user_courses/{docId} {
+      allow read: if isAuthenticated() && 
+        docId.matches(request.auth.uid + '_.*');
+      allow create, update: if isAuthenticated() && 
+        docId.matches(request.auth.uid + '_.*');
+      allow delete: if false;
+    }
+
+    // Videos collection
+    match /videos/{videoId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admin can modify videos
+    }
+
+    // User progress
+    match /user_progress/{docId} {
+      allow read: if isAuthenticated() && 
+        docId.matches(request.auth.uid + '_.*');
+      allow create, update: if isAuthenticated() && 
+        docId.matches(request.auth.uid + '_.*');
+      allow delete: if false;
+    }
+  }
+}

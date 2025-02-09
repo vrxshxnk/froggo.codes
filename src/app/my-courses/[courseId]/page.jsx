@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { courseService } from "@/libs/courseService";
 import Link from "next/link";
 
 const CourseDetail = ({ params }) => {
+  const courseId = use(params).courseId;
   const { user, loading } = useAuth();
   const router = useRouter();
   const [course, setCourse] = useState(null);
   const [progress, setProgress] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
+  // Protect the route
   useEffect(() => {
     if (!loading && !user) {
       router.push("/?signin=true");
@@ -20,52 +22,78 @@ const CourseDetail = ({ params }) => {
   }, [user, loading, router]);
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
-      if (user) {
+    const fetchCourseData = async () => {
+      if (user && courseId) {
         try {
-          const courseData = await courseService.getCourseDetails(
-            params.courseId
-          );
-          const progressData = await courseService.getCourseProgress(
-            user.id,
-            params.courseId
-          );
-
-          const progressLookup = progressData.reduce((acc, curr) => {
-            acc[curr.video_id] = curr.completed;
-            return acc;
-          }, {});
-
-          setCourse({
-            ...courseData,
-            videos: courseData.videos.sort(
-              (a, b) => a.order_index - b.order_index
-            ),
+          // Fetch course details including videos
+          const courseDetails = await courseService.getCourseDetails(courseId);
+          
+          // Fetch progress for this course
+          const courseProgress = await courseService.getCourseProgress(user.id, courseId);
+          
+          // Create a progress map for easier access
+          const progressMap = {};
+          courseProgress.videos.forEach(p => {
+            progressMap[p.video_id] = p.completed;
           });
-          setProgress(progressLookup);
-
-          await courseService.updateLastAccessed(user.id, params.courseId);
+          
+          setCourse({
+            ...courseDetails,
+            videos: courseDetails.videos.map(video => ({
+              ...video,
+              completed: progressMap[video.id] || false
+            }))
+          });
+          setProgress(progressMap);
         } catch (error) {
-          console.error("Error fetching course details:", error);
+          console.error("Error fetching course data:", error);
+          router.push('/my-courses'); // Redirect on error
         }
         setIsLoading(false);
       }
     };
-
-    fetchCourseDetails();
-  }, [user, params.courseId]);
+  
+    fetchCourseData();
+  }, [user, courseId, router]);
 
   const handleVideoComplete = async (videoId) => {
     try {
       const newStatus = !progress[videoId];
-      await courseService.updateVideoProgress(user.id, videoId, newStatus);
-      setProgress((prev) => ({
+      // Update progress in UI
+      setProgress(prev => ({
         ...prev,
-        [videoId]: newStatus,
+        [videoId]: newStatus
       }));
+      
+      // Update in database with courseId
+      await courseService.updateVideoProgress(user.id, videoId, courseId, newStatus);
+
+      // Update course state to reflect new progress
+      if (course && course.videos) {
+        setCourse(prev => ({
+          ...prev,
+          videos: prev.videos.map(video => ({
+            ...video,
+            completed: video.id === videoId ? newStatus : video.completed
+          }))
+        }));
+      }
     } catch (error) {
-      console.error("Error updating progress:", error);
+      console.error("Error updating video progress:", error);
+      // Revert UI change if update fails
+      setProgress(prev => ({
+        ...prev,
+        [videoId]: !newStatus
+      }));
     }
+  };
+
+  const calculateProgress = () => {
+    if (!course || !course.videos) return 0;
+    const completed = course.videos.filter(video => 
+      progress[video.id] || video.completed
+    ).length;
+    return Math.round((completed / course.videos.length) * 100);
   };
 
   if (loading || isLoading) {
@@ -76,21 +104,20 @@ const CourseDetail = ({ params }) => {
     );
   }
 
-  if (!course) return null;
+  if (!user) return null;
 
-  const calculateProgress = () => {
-    const totalVideos = course.videos.length;
-    const completedVideos = Object.values(progress).filter(Boolean).length;
-    return Math.round((completedVideos / totalVideos) * 100);
-  };
+  if (!course) {
+    return (
+      <div className="min-h-screen bg-[#181818] flex items-center justify-center">
+        <div className="text-white">Course not found</div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#181818] py-24 px-8">
       <div className="max-w-4xl mx-auto">
-        <Link
-          href="/my-courses"
-          className="text-white hover:text-gray-300 mb-8 inline-flex items-center"
-        >
+        <Link href="/my-courses" className="text-white hover:text-gray-300 mb-8 inline-flex items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -109,7 +136,7 @@ const CourseDetail = ({ params }) => {
         <div className="bg-neutral-800 rounded-lg p-8 shadow-lg border border-white/10">
           <h1 className="text-4xl font-bold text-white mb-4">{course.title}</h1>
           <p className="text-gray-400 mb-8">{course.description}</p>
-
+          
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xl font-bold text-white">Course Progress</h2>
@@ -124,7 +151,7 @@ const CourseDetail = ({ params }) => {
           </div>
 
           <div className="space-y-4">
-            {course.videos.map((video) => (
+            {course.videos && course.videos.map((video) => (
               <div
                 key={video.id}
                 className="flex items-center justify-between p-4 bg-neutral-700/50 rounded-lg hover:bg-neutral-700 transition-colors"
@@ -133,12 +160,12 @@ const CourseDetail = ({ params }) => {
                   <button
                     onClick={() => handleVideoComplete(video.id)}
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      progress[video.id]
+                      progress[video.id] || video.completed
                         ? "bg-emerald-500 border-emerald-500"
                         : "border-gray-400"
                     }`}
                   >
-                    {progress[video.id] && (
+                    {(progress[video.id] || video.completed) && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-4 w-4 text-white"
