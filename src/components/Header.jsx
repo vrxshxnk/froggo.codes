@@ -148,10 +148,12 @@ const Header = () => {
               >
                 <span
                   className={`font-extrabold ${
-                    isScrolled ? "text-xl md:text-2xl" : "text-2xl md:text-4xl"
+                    isScrolled
+                      ? "text-xl md:text-2xl text-emerald-300"
+                      : "text-2xl md:text-3xl text-emerald-400"
                   } transition-all duration-300 ease-in-out`}
                 >
-                  🐸
+                  PyPy_Codes
                 </span>
               </Link>
             </div>
@@ -214,7 +216,7 @@ const Header = () => {
                   href="/"
                 >
                   <span className="font-extrabold text-lg text-center text-white">
-                    FroggoCodes 🐸
+                    PyPy_Codes
                   </span>
                 </Link>
                 <button
@@ -241,7 +243,7 @@ const Header = () => {
               </div>
               <div className="flow-root mt-6 w-full">
                 <div className="py-4">
-                  // In the mobile menu section
+                  {/* // In the mobile menu section */}
                   <div className="flex flex-col gap-y-4 items-center text-white w-full">
                     {navigationLinks.map((link) => (
                       <a
