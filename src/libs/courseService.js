@@ -1,3 +1,4 @@
+// src/libs/courseService.js
 import { db } from "./firebase";
 import {
   collection,
@@ -19,8 +20,18 @@ export const courseService = {
       }
 
       const userCoursesRef = collection(db, "user_courses");
-      const q = query(userCoursesRef, where("user_id", "==", userId));
+      // Query documents with IDs that start with userId_
+      const q = query(
+        userCoursesRef,
+        where("user_id", "==", userId)
+      );
+
       const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        console.log("No enrolled courses found for user");
+        return [];
+      }
 
       const courses = [];
       for (const docSnapshot of snapshot.docs) {
@@ -37,10 +48,9 @@ export const courseService = {
           if (courseDoc.exists()) {
             courses.push({
               ...data,
-              courses: courseDoc.data(),
+              course_id: data.course_id,
+              courses: courseDoc.data()
             });
-          } else {
-            console.warn(`Course document ${data.course_id} not found`);
           }
         } catch (courseError) {
           console.error("Error fetching course:", courseError);
@@ -50,7 +60,7 @@ export const courseService = {
       return courses;
     } catch (error) {
       console.error("getUserCourses error:", error);
-      throw new Error(`Failed to get user courses: ${error.message}`);
+      return []; // Return empty array instead of throwing
     }
   },
   async getAllCourses() {

@@ -29,6 +29,10 @@ const MyCourses = () => {
           const allAvailableCourses = await courseService.getAllCourses();
           console.log("All courses fetched:", allAvailableCourses);
           
+          if (!Array.isArray(allAvailableCourses)) {
+            throw new Error('Invalid response from getAllCourses');
+          }
+
           setAllCourses(allAvailableCourses.map(course => ({
             ...course,
             isEnrolled: false, // Will update this after getting user courses
@@ -39,29 +43,36 @@ const MyCourses = () => {
           const userCourses = await courseService.getUserCourses(user.id);
           console.log("User courses fetched:", userCourses);
 
-          if (userCourses && userCourses.length > 0) {
+          if (userCourses && Array.isArray(userCourses) && userCourses.length > 0) {
             const coursesWithProgress = await Promise.all(
               userCourses.map(async (course) => {
-                const progress = await courseService.getCourseProgress(
-                  user.id,
-                  course.course_id
-                );
-              
-                return {
-                  id: course.course_id,
-                  title: course.courses.title,
-                  description: course.courses.description,
-                  thumbnail: course.courses.thumbnail || "🐍",
-                  progress: progress.percentage,
-                  lastAccessed: course.last_accessed,
-                };
+                try {
+                  const progress = await courseService.getCourseProgress(
+                    user.id,
+                    course.course_id
+                  );
+                
+                  return {
+                    id: course.course_id,
+                    title: course.courses?.title || 'Untitled Course',
+                    description: course.courses?.description || '',
+                    thumbnail: course.courses?.thumbnail || "🐍",
+                    progress: progress?.percentage || 0,
+                    lastAccessed: course.last_accessed || new Date().toISOString(),
+                  };
+                } catch (progressError) {
+                  console.error("Error fetching progress:", progressError);
+                  return null;
+                }
               })
             );
             
-            setMyCourses(coursesWithProgress);
+            // Filter out any null values from failed progress fetches
+            const validCourses = coursesWithProgress.filter(Boolean);
+            setMyCourses(validCourses);
             
             // Update enrolled status in allCourses
-            const enrolledCourseIds = new Set(coursesWithProgress.map(c => c.id));
+            const enrolledCourseIds = new Set(validCourses.map(c => c.id));
             setAllCourses(prev => 
               prev.map(course => ({
                 ...course,
@@ -76,8 +87,12 @@ const MyCourses = () => {
             stack: error.stack,
             code: error.code
           });
+          // Set default states on error
+          setMyCourses([]);
+          setAllCourses([]);
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     };
 
@@ -90,6 +105,7 @@ const MyCourses = () => {
       const course = allCourses.find(c => c.id === courseId);
       if (!course) throw new Error('Course not found');
 
+      // Create document with the correct ID format: userId_courseId
       await courseService.updateLastAccessed(user.id, courseId, {
         user_id: user.id,
         course_id: courseId,
