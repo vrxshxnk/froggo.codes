@@ -22,7 +22,7 @@ const ResendVerification = ({ email, password, onSuccess }) => {
   return (
     <div className="text-center mt-4">
       <p className="text-sm text-gray-300 mb-2">
-        Haven't received the verification email?
+        Haven&apos;t received the verification email?
       </p>
       <button
         onClick={handleResend}

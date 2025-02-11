@@ -196,8 +196,8 @@ const MyCourses = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-400">
-                You haven't enrolled in any courses yet.
+              <p className="text-gray-400 text-center mt-4">
+                You haven&apos;t enrolled in any courses yet.
               </p>
             </div>
           )}
