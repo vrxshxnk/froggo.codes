@@ -18,6 +18,11 @@ if (typeof window !== "undefined") {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
   };
 
+  console.log('Firebase Config:', {
+    ...firebaseConfig,
+    apiKey: firebaseConfig.apiKey ? 'exists' : 'missing'
+  });
+
   // Initialize Firebase
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
