@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Courses collection - all authenticated users can read
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      // Only admins can write to courses
+      allow write: if isAuthenticated() && request.auth.token.admin == true;
+    }
+    
+    // Videos collection - all authenticated users can read
+    match /videos/{videoId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.token.admin == true;
+    }
+    
+    // User courses collection
+    match /user_courses/{userCourseId} {
+      // Allow read if authenticated and the document contains their user_id
+      allow read: if isAuthenticated() && 
+                   request.auth.uid == resource.data.user_id;
+      
+      // Allow create if authenticated and they're creating for themselves
+      allow create: if isAuthenticated() && 
+                   request.resource.data.user_id == request.auth.uid;
+      
+      // Allow update if authenticated and they own the document
+      allow update: if isAuthenticated() && 
+                   resource.data.user_id == request.auth.uid;
+    }
+    
+    // User progress collection
+    match /user_progress/{progressId} {
+      // Allow read if authenticated and the document contains their user_id
+      allow read: if isAuthenticated() && 
+                   request.auth.uid == resource.data.user_id;
+      
+      // Allow create if authenticated and they're creating for themselves
+      allow create: if isAuthenticated() && 
+                   request.resource.data.user_id == request.auth.uid;
+      
+      // Allow update if authenticated and they own the document
+      allow update: if isAuthenticated() && 
+                   resource.data.user_id == request.auth.uid;
+    }
+  }
+}

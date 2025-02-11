@@ -29,7 +29,7 @@ const Footer = () => {
                 height={24}
               /> */}
               <strong className="font-extrabold tracking-tight text-base md:text-lg">
-                FroggoCodes 🐸
+                PyPy_Codes
                 {/* {config.appName} */}
               </strong>
             </Link>

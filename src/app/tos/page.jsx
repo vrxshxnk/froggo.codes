@@ -3,7 +3,7 @@ import { getSEOTags } from "@/libs/seo";
 // import config from "@/config";
 
 export const metadata = getSEOTags({
-  title: `Terms and Conditions | froggo.codes`,
+  title: `Terms and Conditions | pypy.codes`,
   canonicalUrlRelative: "/tos",
 });
 
@@ -27,20 +27,20 @@ const TOS = () => {
           Back
         </Link>
         <h1 className="text-3xl font-extrabold pb-6">
-          Terms and Conditions for FroggoCodes
+          Terms and Conditions for PyPy_Codes
         </h1>
         {/* prettier-ignore */}
         <h2 className="font-bold"> Terms & Services </h2>
         <h2 className="font-bold"> Effective Date: January 1, 2025 </h2>
         <br />
-        Welcome to FroggoCodes, operated by froggo.codes (&quot;Website&quot;).
-        By accessing or using our Website, you agree to comply with and be bound
-        by the following terms and conditions (&quot;Terms & Services&quot;). If
+        Welcome to PyPy_codes, operated by pypy.codes (&quot;Website&quot;). By
+        accessing or using our Website, you agree to comply with and be bound by
+        the following terms and conditions (&quot;Terms & Services&quot;). If
         you do not agree with these terms, please do not use our Website.
         <br />
         <br />
         <h2 className="font-bold"> 1. Ownership and Usage </h2>
-        When purchasing a course/package from FroggoCodes, you are granted the
+        When purchasing a course/package from PyPy_Codes, you are granted the
         right to use the course solely for educational purposes. You have the
         right to view the course, but you do not have the right to resell it in
         any form.
@@ -56,27 +56,27 @@ const TOS = () => {
         We collect personal data such as your name, email address, and payment
         information. We also collect non-personal data through web cookies. For
         more details, please review our Privacy Policy at
-        https://froggo.codes/privacy-policy.
+        https://pypy.codes/privacy-policy.
         <br />
         <br />
         <h2 className="font-bold"> 4. No Guarantees or Warranties </h2>
-        FroggoCodes does not guarantee or warrant that our products or services
+        PyPy_Codes does not guarantee or warrant that our products or services
         will meet your expectations or that the operation of our products will
         be a 100% uninterrupted or error-free. We provide our products and
         services &quot;as is&quot; without any warranties of any kind.
         <br />
         <br />
-        FroggoCodes does not guarantee that the user will get a job after buying
+        PyPy_Codes does not guarantee that the user will get a job after buying
         or completing the course, and provides no service for providing jobs or
         any form of employement to the user.
         <br />
         <br />
-        FroggoCodes is in no way liable for providing employement, services
-        regarding employement, consultancy, or any related services.
+        PyPy_Codes is in no way liable for providing employement, services
+        regarding employement, consultancy, referrals, or any related services.
         <br />
         <br />
         <h2 className="font-bold"> 5. Limitation of Liability </h2>
-        FroggoCodes holds no liability for any damages arising from the use of
+        PyPy_Codes holds no liability for any damages arising from the use of
         our software. You agree that we are not responsible for any content or
         its usage.
         <br />
@@ -94,7 +94,7 @@ const TOS = () => {
         <h2 className="font-bold">Contact Information:</h2>
         If you have any questions about these Terms & Services, please contact
         us at
-        <span className="font-bold"> hi@froggo.codes </span>
+        <span className="font-bold"> hi@pypy.codes </span>
         <br />
         <br />
         Thank you for reading. Have a wonderful day ahead!

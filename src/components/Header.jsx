@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-// import { signIn } from "next-auth/react";
-// import config from "@/config";
-// import { sendEmail } from "@/libs/mailgun";
+import { useAuth } from "@/context/AuthContext";
+import SignInModal from "./auth/SignInModal";
 
 const links = [
   {
@@ -24,16 +23,35 @@ const links = [
     href: "faq",
     label: "FAQs",
   },
-  // {
-  //   href: "contact",
-  //   label: "Contact",
-  // },
 ];
 
 const Header = () => {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    if (searchParams.get("signin") === "true") {
+      setIsAuthModalOpen(true);
+    }
+  }, [searchParams]);
+
+  const navigationLinks = [
+    ...(user
+      ? [
+          {
+            href: "/my-courses",
+            label: "Course",
+            isFullPath: true,
+            isCourseLink: true,
+          },
+          { href: "/profile", label: "Profile", isFullPath: true },
+        ]
+      : []),
+    ...links,
+  ];
 
   useEffect(() => {
     setIsOpen(false);
@@ -62,20 +80,20 @@ const Header = () => {
     setIsOpen(false); // Close mobile menu if open
   };
 
-  // const cta = (
-  //   <button
-  //     // onClick={() =>
-  //     //   signIn(undefined, { callbackUrl: config.auth.callbackUrl })
-  //     // }
-  //     className={`btn ${
-  //       isScrolled
-  //         ? "bg-white hover:bg-emerald-100 text-emerald-700 text-sm py-1 px-2 rounded-md"
-  //         : "bg-white hover:bg-emerald-100 text-emerald-700 text-md py-2 px-4 rounded-md"
-  //     } transition-all duration-300 ease-in-out`}
-  //   >
-  //     Get started
-  //   </button>
-  // );
+  const cta = (
+    <button
+      // onClick={() =>
+      //   signIn(undefined, { callbackUrl: config.auth.callbackUrl })
+      // }
+      className={`btn ${
+        isScrolled
+          ? "bg-white hover:bg-emerald-100 text-emerald-700 text-sm py-1 px-2 rounded-md"
+          : "bg-white hover:bg-emerald-100 text-emerald-700 text-md py-2 px-4 rounded-md"
+      } transition-all duration-300 ease-in-out`}
+    >
+      Get started
+    </button>
+  );
 
   return (
     <header
@@ -150,7 +168,7 @@ const Header = () => {
             </a>
           ))}
         </div>
-        {/* <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div> */}
+        <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
       </nav>
       <div className={`relative z-50 ${isOpen ? "" : "hidden"}`}>
         <div
@@ -207,6 +225,7 @@ const Header = () => {
               </div>
             </div>
             <div className="divider"></div>
+            <div className="flex flex-col w-full">{cta} </div>
           </div>
         </div>
       </div>

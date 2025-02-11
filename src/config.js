@@ -1,11 +1,11 @@
 const config = {
   // REQUIRED
-  appName: "FroggoCodes",
+  appName: "PyPyCodes",
   // REQUIRED: a short description of your app for SEO tags (can be overwritten)
   appDescription:
-    "Join FroggoCodes, the ultimate 30-day in-depth Python bootcamp designed to take you from zero to job-ready! Learn coding essentials and advanced skills with a focus on practical, real-world projects that prepare you to excel as a junior software engineer. Start your journey to a professional tech career today!",
+    "Join PyPy_Codes, the ultimate 30-day in-depth Python bootcamp designed to take you from zero to job-ready! Learn coding essentials and advanced skills with a focus on practical, real-world projects that prepare you to excel as a junior software engineer. Start your journey to a professional tech career today!",
   // REQUIRED (no https://, not trialing slash at the end, just the naked domain)
-  domainName: "froggo.codes",
+  domainName: "pypy.codes",
   //   crisp: {
   //     // Crisp website ID. IF YOU DON'T USE CRISP: just remove this => Then add a support email in this config file (mailgun.supportEmail) otherwise customer support won't work.
   //     id: "",
