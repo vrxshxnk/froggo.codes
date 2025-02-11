@@ -9,7 +9,7 @@ export const metadata = getSEOTags({
 
 const TOS = () => {
   return (
-    <main className="w-full mx-auto bg-[#181818] text-white">
+    <main className="max-w-full bg-[#181818] text-white mx-auto">
       <div className="w-7xl p-24">
         <Link href="/" className="btn btn-ghost">
           <svg

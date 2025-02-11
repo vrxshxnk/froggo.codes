@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 // import config from "@/config";
 
@@ -40,7 +42,10 @@ const Hero = () => {
             💪🏼 Learn from 10+ years of industry experience.{" "}
             {/* <span className="text-3xl">🍪</span> */}
           </p>
-          <button className="btn btn-primary btn-wide bg-emerald-500 text-white font-bold hover:bg-emerald-600 px-2 py-2 rounded-md">
+          <button 
+            onClick={() => window.location.href = '/?signin=true'} 
+            className="btn btn-primary btn-wide bg-emerald-500 text-white font-bold hover:bg-emerald-600 px-2 py-2 rounded-md"
+          >
             Become Job Ready!
           </button>
         </div>
