@@ -24,26 +24,32 @@ const MyCourses = () => {
       if (user) {
         try {
           console.log("Fetching courses for user:", user.id);
-          
+
           // Fetch all courses first
           const allAvailableCourses = await courseService.getAllCourses();
           console.log("All courses fetched:", allAvailableCourses);
-          
+
           if (!Array.isArray(allAvailableCourses)) {
-            throw new Error('Invalid response from getAllCourses');
+            throw new Error("Invalid response from getAllCourses");
           }
 
-          setAllCourses(allAvailableCourses.map(course => ({
-            ...course,
-            isEnrolled: false, // Will update this after getting user courses
-            thumbnail: course.thumbnail || "🐍"
-          })));
+          setAllCourses(
+            allAvailableCourses.map((course) => ({
+              ...course,
+              isEnrolled: false, // Will update this after getting user courses
+              thumbnail: course.thumbnail || "🐍",
+            }))
+          );
 
           // Then fetch user's enrolled courses
           const userCourses = await courseService.getUserCourses(user.id);
           console.log("User courses fetched:", userCourses);
 
-          if (userCourses && Array.isArray(userCourses) && userCourses.length > 0) {
+          if (
+            userCourses &&
+            Array.isArray(userCourses) &&
+            userCourses.length > 0
+          ) {
             const coursesWithProgress = await Promise.all(
               userCourses.map(async (course) => {
                 try {
@@ -51,14 +57,15 @@ const MyCourses = () => {
                     user.id,
                     course.course_id
                   );
-                
+
                   return {
                     id: course.course_id,
-                    title: course.courses?.title || 'Untitled Course',
-                    description: course.courses?.description || '',
+                    title: course.courses?.title || "Untitled Course",
+                    description: course.courses?.description || "",
                     thumbnail: course.courses?.thumbnail || "🐍",
                     progress: progress?.percentage || 0,
-                    lastAccessed: course.last_accessed || new Date().toISOString(),
+                    lastAccessed:
+                      course.last_accessed || new Date().toISOString(),
                   };
                 } catch (progressError) {
                   console.error("Error fetching progress:", progressError);
@@ -66,17 +73,17 @@ const MyCourses = () => {
                 }
               })
             );
-            
+
             // Filter out any null values from failed progress fetches
             const validCourses = coursesWithProgress.filter(Boolean);
             setMyCourses(validCourses);
-            
+
             // Update enrolled status in allCourses
-            const enrolledCourseIds = new Set(validCourses.map(c => c.id));
-            setAllCourses(prev => 
-              prev.map(course => ({
+            const enrolledCourseIds = new Set(validCourses.map((c) => c.id));
+            setAllCourses((prev) =>
+              prev.map((course) => ({
                 ...course,
-                isEnrolled: enrolledCourseIds.has(course.id)
+                isEnrolled: enrolledCourseIds.has(course.id),
               }))
             );
           }
@@ -85,7 +92,7 @@ const MyCourses = () => {
             name: error.name,
             message: error.message,
             stack: error.stack,
-            code: error.code
+            code: error.code,
           });
           // Set default states on error
           setMyCourses([]);
@@ -102,8 +109,8 @@ const MyCourses = () => {
   const handleEnroll = async (courseId) => {
     try {
       // Get the course details first
-      const course = allCourses.find(c => c.id === courseId);
-      if (!course) throw new Error('Course not found');
+      const course = allCourses.find((c) => c.id === courseId);
+      if (!course) throw new Error("Course not found");
 
       // Create document with the correct ID format: userId_courseId
       await courseService.updateLastAccessed(user.id, courseId, {
@@ -113,10 +120,10 @@ const MyCourses = () => {
         courses: {
           title: course.title,
           description: course.description,
-          thumbnail: course.thumbnail
-        }
+          thumbnail: course.thumbnail,
+        },
       });
-      
+
       // Refresh the courses data
       window.location.reload();
     } catch (error) {
@@ -197,7 +204,7 @@ const MyCourses = () => {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-400">
-                You haven't enrolled in any courses yet.
+                You haven&apos;t enrolled in any courses yet.
               </p>
             </div>
           )}

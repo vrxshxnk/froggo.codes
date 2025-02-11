@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const ResendVerification = ({ email, password, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { resendVerificationEmail } = useAuth();
 
   const handleResend = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
       await resendVerificationEmail(email, password);
       onSuccess?.();
     } catch (error) {
@@ -22,18 +22,16 @@ const ResendVerification = ({ email, password, onSuccess }) => {
   return (
     <div className="text-center mt-4">
       <p className="text-sm text-gray-300 mb-2">
-        Haven't received the verification email?
+        Haven&apos;t received the verification email?
       </p>
       <button
         onClick={handleResend}
         disabled={loading}
         className="text-emerald-500 hover:text-emerald-400 text-sm font-medium"
       >
-        {loading ? 'Sending...' : 'Resend verification email'}
+        {loading ? "Sending..." : "Resend verification email"}
       </button>
-      {error && (
-        <p className="text-red-500 text-sm mt-2">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
   );
 };
