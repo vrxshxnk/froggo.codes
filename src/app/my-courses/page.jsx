@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { courseService } from "@/libs/courseService";
+import { paymentService } from "@/libs/paymentService";
 import Link from "next/link";
 
 const MyCourses = () => {
@@ -99,28 +100,105 @@ const MyCourses = () => {
     fetchCourses();
   }, [user]);
 
+  // Inside the MyCourses component
+  const waitForRazorpay = (maxAttempts = 10, interval = 1000) => {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      
+      const check = () => {
+        attempts++;
+        if (typeof window.Razorpay !== "undefined") {
+          resolve(window.Razorpay);
+        } else if (attempts === maxAttempts) {
+          reject(new Error("Razorpay SDK failed to load"));
+        } else {
+          setTimeout(check, interval);
+        }
+      };
+      
+      check();
+    });
+  };
+
   const handleEnroll = async (courseId) => {
     try {
-      // Get the course details first
       const course = allCourses.find(c => c.id === courseId);
       if (!course) throw new Error('Course not found');
 
-      // Create document with the correct ID format: userId_courseId
-      await courseService.updateLastAccessed(user.id, courseId, {
-        user_id: user.id,
-        course_id: courseId,
-        last_accessed: new Date().toISOString(),
-        courses: {
-          title: course.title,
-          description: course.description,
-          thumbnail: course.thumbnail
-        }
+      // Create payment record
+      await paymentService.createPayment(user.id, courseId, 1999);
+
+      const response = await fetch('/api/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 1999, courseId })
       });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Payment initialization failed');
+
+      // Load Razorpay script dynamically
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       
-      // Refresh the courses data
-      window.location.reload();
+      await new Promise((resolve, reject) => {
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+      });
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: 1999 * 100,
+        currency: "INR",
+        name: "PyPy Codes",
+        description: `${course.title} Course Purchase`,
+        order_id: data.orderId,
+        handler: async (response) => {
+          try {
+            await paymentService.updatePaymentStatus(
+              user.id,
+              courseId,
+              response.razorpay_payment_id,
+              'completed'
+            );
+
+            await courseService.updateLastAccessed(user.id, courseId, {
+              user_id: user.id,
+              course_id: courseId,
+              last_accessed: new Date().toISOString(),
+              courses: {
+                title: course.title,
+                description: course.description,
+                thumbnail: course.thumbnail
+              }
+            });
+
+            window.location.reload();
+          } catch (error) {
+            console.error('Error in payment handler:', error);
+            alert('Payment successful but enrollment failed. Please contact support.');
+          }
+        },
+        prefill: {
+          email: user.email,
+        },
+        modal: {
+          ondismiss: function() {
+            console.log('Payment modal closed');
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        alert(response.error.description);
+      });
+      rzp.open();
     } catch (error) {
-      console.error("Error enrolling in course:", error);
+      console.error('Error in handleEnroll:', error);
+      alert(error.message || 'Failed to process payment. Please try again.');
     }
   };
 
