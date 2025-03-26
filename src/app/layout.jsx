@@ -1,5 +1,5 @@
 import { AuthProvider } from "@/context/AuthContext";
-import Script from 'next/script';
+import Script from "next/script";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -16,13 +16,18 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "Python BootCamp",
-  description: "Best way to learn Python. Learn to code in 30 days.",
+  metadataBase: new URL("https://your-domain.com"), // Replace with your domain
+  title: {
+    template: "%s | Coding BootCamp",
+    default: "Coding BootCamp",
+  },
+  description: "Best way to learn how to code. Learn to code in 30 days.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head />
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
