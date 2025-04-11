@@ -3,7 +3,7 @@ import { getSEOTags } from "@/libs/seo";
 import config from "@/config";
 
 export const metadata = getSEOTags({
-  title: `Privacy Policy | pypy.codes`,
+  title: `Privacy Policy | froggo.codes`,
   canonicalUrlRelative: "/privacy-policy",
 });
 
@@ -27,12 +27,12 @@ const PrivacyPolicy = () => {
           Back
         </Link>
         <h1 className="text-3xl font-extrabold pb-6">
-          Privacy Policy for {config.appName}
+          Privacy Policy for FroggoCodes
         </h1>
         <h2 className="font-bold">Privacy Policy</h2>
         <h2 className="font-bold">Effective Date: January 1, 2025</h2>
         <br />
-        Welcome to PyPy_Codes, accessible from https://pypy.codes
+        Welcome to FroggoCodes, accessible from https://froggo.codes
         (&quot;Website&quot;). Your privacy is important to us, and this Privacy
         Policy outlines how we collect, use, and protect your information.
         <br />
@@ -58,13 +58,13 @@ const PrivacyPolicy = () => {
         <br />
         <h2 className="font-bold">5. Updates to the Privacy Policy</h2>
         We may update this Privacy Policy from time to time. Users will be
-        notified of any changes via email.
+        notified of any changes via email.s
         <br />
         <br />
         <h2 className="font-bold">6. Contact Information</h2>
         If you have any questions about these Privacy Policies, and Terms &
         Services, please contact us at
-        <span className="font-bold"> hi@pypy.codes </span>
+        <span className="font-bold"> hi@froggo.codes </span>
         <br />
         <br />
         Thank you for reading. Have a wonderful day ahead!

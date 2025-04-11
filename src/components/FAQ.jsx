@@ -60,7 +60,7 @@ const faqList = [
     question: "What will I learn?",
     answer: (
       <div className="space-y-2 leading-relaxed">
-        You&apos;ll learn full-stack development using Python, Django, HTML,
+        You&apos;ll learn full-stack development using JavaScript, NextJS, HTML,
         CSS, etc. For more refer to the syllabus section above!
       </div>
     ),

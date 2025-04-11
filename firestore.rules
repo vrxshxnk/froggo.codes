@@ -10,6 +10,11 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Users collection - users can only read and write their own data
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
     // Courses collection - all authenticated users can read
     match /courses/{courseId} {
       allow read: if isAuthenticated();

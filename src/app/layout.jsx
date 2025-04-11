@@ -1,5 +1,5 @@
 import { AuthProvider } from "@/context/AuthContext";
-import Script from 'next/script';
+import Script from "next/script";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -16,8 +16,8 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "Python BootCamp",
-  description: "Best way to learn Python. Learn to code in 30 days.",
+  title: "FroggoCodes",
+  description: "Best way to learn to code.",
 };
 
 export default function RootLayout({ children }) {

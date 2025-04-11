@@ -29,12 +29,12 @@ const Footer = () => {
                 height={24}
               /> */}
               <strong className="font-extrabold tracking-tight text-base md:text-lg">
-                PyPy_Codes
+                🐸 FroggoCodes
                 {/* {config.appName} */}
               </strong>
             </Link>
-            <p className="mt-3 text-sm text-white">Learn to code in 30 days.</p>
-            <p className="mt-3 text-sm text-white">
+            <p className="mt-2 text-sm text-white">Learn to code in 30 days.</p>
+            <p className="mt-2 text-sm text-white">
               © {new Date().getFullYear()}. All rights reserved.
             </p>
           </div>

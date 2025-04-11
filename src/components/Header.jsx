@@ -36,6 +36,19 @@ const Header = () => {
     if (searchParams.get("signin") === "true") {
       setIsAuthModalOpen(true);
     }
+
+    // Add event listener for custom open modal event
+    const handleOpenModal = () => {
+      console.log("Header received open-signin-modal event");
+      setIsAuthModalOpen(true);
+    };
+
+    window.addEventListener("open-signin-modal", handleOpenModal);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("open-signin-modal", handleOpenModal);
+    };
   }, [searchParams]);
 
   const navigationLinks = [
@@ -153,7 +166,7 @@ const Header = () => {
                       : "text-2xl md:text-3xl text-emerald-400"
                   } transition-all duration-300 ease-in-out`}
                 >
-                  PyPy_Codes
+                  🐸 FroggoCodes
                 </span>
               </Link>
             </div>
@@ -216,7 +229,7 @@ const Header = () => {
                   href="/"
                 >
                   <span className="font-extrabold text-lg text-center text-white">
-                    PyPy_Codes
+                    🐸 FroggoCodes
                   </span>
                 </Link>
                 <button
@@ -265,7 +278,23 @@ const Header = () => {
                   </div>
                 </div>
                 <div className="divider"></div>
-                <div className="flex flex-col w-full">{cta}</div>
+                <div className="flex flex-col items-center justify-center w-full">
+                  {user ? (
+                    <button
+                      onClick={handleAuthClick}
+                      className="w-full max-w-[200px] mx-auto bg-white hover:bg-emerald-100 text-emerald-700 text-md py-2 px-4 rounded-md transition-all duration-300 ease-in-out"
+                    >
+                      Sign Out
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsAuthModalOpen(true)}
+                      className="w-full max-w-[200px] mx-auto bg-emerald-600 hover:bg-emerald-700 text-white text-md py-2 px-4 rounded-md transition-all duration-300 ease-in-out"
+                    >
+                      Sign In
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

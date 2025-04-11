@@ -6,7 +6,7 @@ const features = [
   {
     title: "Cover the basics.",
     description:
-      "We start from scratch, absolute basics of Python, Data Types, Variables, Loops, Conditions, Functions, and take it from there. ",
+      "We start from scratch, absolute basics of JavaScript, Data Types, Variables, Loops, Conditions, Functions, and take it from there. ",
     type: "video",
     path: "https://d3m8mk7e1mf7xn.cloudfront.net/app/newsletter.webm",
     format: "video/webm",
@@ -86,7 +86,7 @@ const features = [
   {
     title: "Winning stack.",
     description:
-      "Python and Django are a well known pair for back-end development with evergrowing popularity and jobs.",
+      "JavaScript, TypeScript, NextJS, NodeJS, Tailwind, HTML, and CSS are technologies with evergrowing popularity and jobs.",
     svg: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -211,7 +211,7 @@ const features = [
   {
     title: "Constantly updated.",
     description:
-      "As there are updates or new features in Python or Django or CSS or HTML, whatever it is, be assured you are getting an updated version of the course.",
+      "As there are updates or new features in JavaScript or Node or CSS or HTML, any relevant new technology worth learning, whatever it is, be assured you are getting an updated version of the course.",
     svg: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
