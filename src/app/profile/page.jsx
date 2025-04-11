@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
@@ -26,19 +26,7 @@ const Profile = () => {
     dobChangesRemaining: 0,
   });
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/");
-    }
-
-    if (user) {
-      setNewName(user.user_metadata.full_name || "");
-      setNewDob(user.user_metadata.dob || "");
-      fetchRemainingChanges();
-    }
-  }, [user, loading, router, fetchRemainingChanges]);
-
-  const fetchRemainingChanges = async () => {
+  const fetchRemainingChanges = useCallback(async () => {
     try {
       const changes = await getRemainingChanges();
       setRemainingChanges(changes);
@@ -49,7 +37,19 @@ const Profile = () => {
         dobChangesRemaining: 2,
       });
     }
-  };
+  }, [getRemainingChanges]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/");
+    }
+
+    if (user) {
+      setNewName(user.user_metadata?.full_name || "");
+      setNewDob(user.user_metadata?.dob || "");
+      fetchRemainingChanges();
+    }
+  }, [user, loading, router, fetchRemainingChanges]);
 
   const handleUpdateName = async (e) => {
     e.preventDefault();
@@ -192,7 +192,7 @@ const Profile = () => {
                     type="button"
                     onClick={() => {
                       setEditingName(false);
-                      setNewName(user.user_metadata.full_name || "");
+                      setNewName(user.user_metadata?.full_name || "");
                     }}
                     className="px-3 py-1 bg-neutral-700 hover:bg-neutral-600 text-white rounded-md"
                   >
@@ -202,7 +202,7 @@ const Profile = () => {
               ) : (
                 <div>
                   <p className="text-emerald-500">
-                    {user.user_metadata.full_name || "Not provided"}
+                    {user.user_metadata?.full_name || "Not provided"}
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
                     Changes remaining: {remainingChanges.nameChangesRemaining}/2
@@ -252,7 +252,7 @@ const Profile = () => {
                     type="button"
                     onClick={() => {
                       setEditingDob(false);
-                      setNewDob(user.user_metadata.dob || "");
+                      setNewDob(user.user_metadata?.dob || "");
                     }}
                     className="px-3 py-1 bg-neutral-700 hover:bg-neutral-600 text-white rounded-md"
                   >
@@ -262,7 +262,7 @@ const Profile = () => {
               ) : (
                 <div>
                   <p className="text-emerald-500">
-                    {user.user_metadata.dob || "Not provided"}
+                    {user.user_metadata?.dob || "Not provided"}
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
                     Changes remaining: {remainingChanges.dobChangesRemaining}/2
