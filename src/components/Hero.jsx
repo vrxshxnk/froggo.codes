@@ -26,7 +26,7 @@ const Hero = () => {
     }, 4000); // Change text every 4 seconds
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [texts.length]);
 
   const handleButtonClick = () => {
     if (user) {

@@ -36,7 +36,7 @@ const Profile = () => {
       setNewDob(user.user_metadata.dob || "");
       fetchRemainingChanges();
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, fetchRemainingChanges]);
 
   const fetchRemainingChanges = async () => {
     try {

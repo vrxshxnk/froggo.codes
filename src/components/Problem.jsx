@@ -20,7 +20,7 @@ const Problem = () => {
         </h2>
 
         <h2 className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-teal-400 to-green-300 max-w-4xl mx-auto font-extrabold text-4xl md:text-7xl tracking-tight leading-normal mt-8 mb-6 md:mb-16">
-          Why aren't you?
+          Why aren&apos;t you?
         </h2>
 
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start gap-10 md:mb-8 mt-12">
