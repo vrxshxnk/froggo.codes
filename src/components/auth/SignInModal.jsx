@@ -121,7 +121,7 @@ const SignInModal = ({ isOpen, onClose }) => {
       } else if (isValid) {
         setPasswordMessage("Password strength: Good");
       } else {
-        setPasswordMessage("Password doesn't meet all requirements");
+        setPasswordMessage("Password doesn&apos;t meet all requirements");
       }
 
       // Check if passwords match
@@ -136,9 +136,7 @@ const SignInModal = ({ isOpen, onClose }) => {
     if (isSignUp) {
       // Client-side validation
       if (!passwordValid) {
-        setError(
-          "Password must have at least 8 characters, at least 1 uppercase & 1 lowercase character, 1 number, and not contain your name or email"
-        );
+        setError("Password doesn&apos;t meet all requirements");
         return;
       }
 
@@ -392,8 +390,8 @@ const SignInModal = ({ isOpen, onClose }) => {
                 Check Your Email
               </h3>
               <p className="text-gray-300 mb-6">
-                If an account exists with this email, we've sent instructions to
-                reset your password.
+                If an account exists with this email, we&apos;ll sent
+                instructions to reset your password.
               </p>
               <button
                 onClick={() => {
@@ -408,7 +406,7 @@ const SignInModal = ({ isOpen, onClose }) => {
           ) : (
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <p className="text-gray-300 text-sm mb-4">
-                Enter your email address and we'll send you instructions to
+                Enter your email address and we&apos;ll send you instructions to
                 reset your password.
               </p>
               <div>
@@ -580,8 +578,8 @@ const SignInModal = ({ isOpen, onClose }) => {
                       : "text-red-500"
                   }`}
                 >
-                  {passwordChecks.notNameEmail ? "✓" : "✗"} Password shouldn't
-                  contain your name or email
+                  {passwordChecks.notNameEmail ? "✓" : "✗"} Password
+                  shouldn&apos;t contain your name or email
                 </p>
               </div>
             )}
@@ -694,7 +692,7 @@ const SignInModal = ({ isOpen, onClose }) => {
           >
             {isSignUp
               ? "Already have an account? Sign in"
-              : "Don't have an account? Sign up"}
+              : "Don&apos;t have an account? Sign up"}
           </button>
         </form>
       </div>
