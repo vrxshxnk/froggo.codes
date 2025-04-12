@@ -3,8 +3,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import ResendVerification from "./ResendVerification";
 
-const SignInModal = ({ isOpen, onClose }) => {
-  const [isSignUp, setIsSignUp] = useState(false);
+const SignInModal = ({ isOpen, onClose, startWithSignUp = false }) => {
+  const [isSignUp, setIsSignUp] = useState(startWithSignUp);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -251,7 +251,6 @@ const SignInModal = ({ isOpen, onClose }) => {
     setDob("");
     setError("");
     setShowResend(false);
-    setIsSignUp(false);
     setLoading(false);
     setSignupSuccess(false);
     setShowForgotPassword(false);
@@ -278,13 +277,21 @@ const SignInModal = ({ isOpen, onClose }) => {
   // Handle modal close
   const handleClose = () => {
     resetForm();
+    setIsSignUp(false);
     onClose();
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsSignUp(startWithSignUp);
+    }
+  }, [startWithSignUp, isOpen]);
 
   useEffect(() => {
     // Reset form when modal is closed
     if (!isOpen) {
       resetForm();
+      setIsSignUp(false);
     }
   }, [isOpen]);
 
@@ -667,11 +674,16 @@ const SignInModal = ({ isOpen, onClose }) => {
             disabled={
               loading || (isSignUp && (!passwordValid || !passwordsMatch))
             }
+            title={
+              isSignUp && (!passwordValid || !passwordsMatch)
+                ? "Fill the complete form."
+                : ""
+            }
             className={`w-full ${
               isSignUp && (!passwordValid || !passwordsMatch)
-                ? "bg-gray-600 cursor-not-allowed"
+                ? "bg-emerald-500/10 cursor-not-allowed border border-emerald-400"
                 : "bg-emerald-600 hover:bg-emerald-700"
-            } text-white py-2 px-4 rounded-md transition-colors`}
+            } text-emerald-500 py-2 px-4 rounded-md transition-colors`}
           >
             {loading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
           </button>
@@ -692,7 +704,7 @@ const SignInModal = ({ isOpen, onClose }) => {
           >
             {isSignUp
               ? "Already have an account? Sign in"
-              : "Don&apos;t have an account? Sign up"}
+              : "New Here? Sign up"}
           </button>
         </form>
       </div>

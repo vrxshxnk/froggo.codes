@@ -30,24 +30,37 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [startWithSignUp, setStartWithSignUp] = useState(false);
   const { user, signOut } = useAuth();
 
   useEffect(() => {
     if (searchParams.get("signin") === "true") {
+      setStartWithSignUp(false);
       setIsAuthModalOpen(true);
     }
 
-    // Add event listener for custom open modal event
-    const handleOpenModal = () => {
-      console.log("Header received open-signin-modal event");
+    // Modified event listener to check for startWithSignUp detail
+    const handleOpenModal = (event) => {
+      console.log("Header received open-signin-modal event", event.detail);
+      // Check if the event has a detail property indicating to start with sign-up
+      setStartWithSignUp(event.detail?.startWithSignUp === true);
+      setIsAuthModalOpen(true);
+    };
+
+    // Add event listener for sign up modal event
+    const handleOpenSignUpModal = () => {
+      console.log("Header received open-signup-modal event");
+      setStartWithSignUp(true);
       setIsAuthModalOpen(true);
     };
 
     window.addEventListener("open-signin-modal", handleOpenModal);
+    window.addEventListener("open-signup-modal", handleOpenSignUpModal);
 
     // Cleanup
     return () => {
       window.removeEventListener("open-signin-modal", handleOpenModal);
+      window.removeEventListener("open-signup-modal", handleOpenSignUpModal);
     };
   }, [searchParams]);
 
@@ -97,6 +110,7 @@ const Header = () => {
     if (user) {
       signOut();
     } else {
+      setStartWithSignUp(false);
       setIsAuthModalOpen(true);
     }
   };
@@ -115,7 +129,10 @@ const Header = () => {
   ) : (
     <div className="flex gap-2">
       <button
-        onClick={() => setIsAuthModalOpen(true)}
+        onClick={() => {
+          setStartWithSignUp(false);
+          setIsAuthModalOpen(true);
+        }}
         className={`btn ${
           isScrolled
             ? "bg-emerald-600 hover:bg-emerald-700 text-white text-sm py-1 px-2 rounded-md"
@@ -288,7 +305,10 @@ const Header = () => {
                     </button>
                   ) : (
                     <button
-                      onClick={() => setIsAuthModalOpen(true)}
+                      onClick={() => {
+                        setStartWithSignUp(false);
+                        setIsAuthModalOpen(true);
+                      }}
                       className="w-full max-w-[200px] mx-auto bg-emerald-600 hover:bg-emerald-700 text-white text-md py-2 px-4 rounded-md transition-all duration-300 ease-in-out"
                     >
                       Sign In
@@ -303,6 +323,7 @@ const Header = () => {
       <SignInModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        startWithSignUp={startWithSignUp}
       />
     </>
   );

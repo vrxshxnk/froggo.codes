@@ -128,6 +128,12 @@ const MyCourses = () => {
   };
 
   const handleEnroll = async (courseId) => {
+    if (!user) {
+      console.log("Enroll button clicked, dispatching open-signup-modal event");
+      window.dispatchEvent(new CustomEvent("open-signup-modal"));
+      return;
+    }
+
     try {
       const course = allCourses.find((c) => c.id === courseId);
       if (!course) throw new Error("Course not found");
