@@ -6,7 +6,7 @@ const nextConfig = {
     // appDir: true,
   },
   // Tell Next.js where to find your app directory
-  distDir: "build",
+  distDir: ".next",
   env: {
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
