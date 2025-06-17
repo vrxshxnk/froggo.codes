@@ -15,10 +15,17 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
-    // Courses collection - all authenticated users can read
+    // Courses collection - public read access for pricing display, admins can write
     match /courses/{courseId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Allow anyone to read courses for pricing display
       // Only admins can write to courses
+      allow write: if isAuthenticated() && request.auth.token.admin == true;
+    }
+    
+    // Features collection - public read access for course features display
+    match /features/{courseId} {
+      allow read: if true; // Allow anyone to read course features for pricing display
+      // Only admins can write to features
       allow write: if isAuthenticated() && request.auth.token.admin == true;
     }
     

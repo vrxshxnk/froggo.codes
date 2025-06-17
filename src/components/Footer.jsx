@@ -9,10 +9,10 @@ const Footer = () => {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {" "}
         {/* Reduced max-width and padding for overall footer width adjustment */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-10">
+        <div className="flex flex-col md:flex-row justify-center md:justify-around items-center gap-10 md:gap-0">
           {" "}
           {/* Adjusted for side-by-side layout at md breakpoint and beyond */}
-          <div className="text-center md:text-left flex-1">
+          <div className="text-center md:text-left">
             {" "}
             {/* Flex-1 for even spacing */}
             <Link
@@ -38,39 +38,23 @@ const Footer = () => {
               © {new Date().getFullYear()}. All rights reserved.
             </p>
           </div>
-          <div className="flex-1 sm:text-center">
-            {" "}
-            {/* Flex-1 for even spacing */}
-            <div className="w-full sm:px-4 items-center justify-center sm:text-center">
-              <div className="flex flex-col md:flex-row justify-around sm:items-center sm:text-center sm:justify-center text-white gap-4 mb-4 md:mb-0 text-sm">
-                {" "}
-                {/* Adjusted for side-by-side layout and spacing of links */}
-                {/* {config.mailgun.supportEmail && (
-                  <a
-                    href={`mailto:${config.mailgun.supportEmail}`}
-                    target="_blank"
-                    className="link link-hover"
-                    aria-label="Contact Support"
-                  >
-                    Support
-                  </a>
-                )} */}
-                {/* <Link href="/#pricing" className="link link-hover">
-                  Pricing
-                </Link> */}
-                {/* <a href="/#" target="_blank" className="link link-hover">
-                  Affiliates
-                </a> */}
-                <Link href="/tos" className="link link-hover">
-                  Terms of services
-                </Link>
-                <Link href="/privacy-policy" className="link link-hover">
-                  Privacy policy
-                </Link>
-                <a href="mailto:hi@froggo.codes" className="link link-hover">
-                  Contact
-                </a>
-              </div>
+          <div className="flex justify-center">
+            <div className="flex flex-col md:flex-row justify-center items-center text-center text-white gap-4 md:gap-6 text-sm">
+              {/* <Link href="/#pricing" className="link link-hover">
+                Pricing
+              </Link>
+              <Link href="/my-courses" className="link link-hover">
+                Courses
+              </Link> */}
+              <Link href="/tos" className="link link-hover">
+                Terms of services
+              </Link>
+              <Link href="/privacy-policy" className="link link-hover">
+                Privacy policy
+              </Link>
+              <a href="mailto:hi@froggo.codes" className="link link-hover">
+                Contact
+              </a>
             </div>
           </div>
         </div>

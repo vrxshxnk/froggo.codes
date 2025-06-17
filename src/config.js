@@ -6,6 +6,19 @@ const config = {
     "Join FroggoCodes, the ultimate 30-day in-depth bootcamp designed to take you from zero to job-ready! Learn coding essentials and advanced skills with a focus on practical, real-world projects that prepare you to excel as a junior software engineer. Start your journey to a professional tech career today!",
   // REQUIRED (no https://, not trialing slash at the end, just the naked domain)
   domainName: "froggo.codes",
+
+  // Featured course configuration
+  featuredCourseId: "zero-to-hero", // Course to display on main pricing page
+
+  // Bunny.net video streaming configuration
+  bunny: {
+    // Your Bunny.net library ID for video streaming
+    libraryId: process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID || "your-library-id",
+    // Base URL for Bunny.net iframe embeds
+    embedBaseUrl: "https://iframe.mediadelivery.net/embed",
+    // Player.js library URL hosted on Bunny.net CDN
+    playerJsUrl: "//assets.mediadelivery.net/playerjs/player-0.1.0.min.js",
+  },
   //   crisp: {
   //     // Crisp website ID. IF YOU DON'T USE CRISP: just remove this => Then add a support email in this config file (mailgun.supportEmail) otherwise customer support won't work.
   //     id: "",

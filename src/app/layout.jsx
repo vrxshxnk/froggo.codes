@@ -18,6 +18,9 @@ const geistMono = localFont({
 export const metadata = {
   title: "FroggoCodes",
   description: "Best way to learn to code.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }) {

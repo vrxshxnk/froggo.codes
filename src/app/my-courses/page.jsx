@@ -138,13 +138,29 @@ const MyCourses = () => {
       const course = allCourses.find((c) => c.id === courseId);
       if (!course) throw new Error("Course not found");
 
+      // Detect user location for pricing
+      let isIndianUser = true; // Default to Indian pricing
+      try {
+        const locationResponse = await fetch("https://ipapi.co/json/");
+        const locationData = await locationResponse.json();
+        isIndianUser = locationData.country_code === "IN";
+      } catch (locationError) {
+        console.warn("Could not detect location, using Indian pricing");
+      }
+
+      // Get dynamic pricing for the course
+      const paymentAmount = await courseService.getCoursePaymentAmount(
+        courseId,
+        isIndianUser
+      );
+
       // Create payment record
-      await paymentService.createPayment(user.id, courseId, 4999);
+      await paymentService.createPayment(user.id, courseId, paymentAmount);
 
       const response = await fetch("/api/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: 4999, courseId }),
+        body: JSON.stringify({ amount: paymentAmount, courseId }),
       });
 
       const data = await response.json();
@@ -163,7 +179,7 @@ const MyCourses = () => {
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: 4999 * 100,
+        amount: paymentAmount * 100,
         currency: "INR",
         name: "FroggoCodes",
         description: `${course.title} Course Purchase`,
@@ -258,50 +274,57 @@ const MyCourses = () => {
                 Discover Our Courses
               </h2>
               <div className="grid gap-6 md:grid-cols-2">
-                {allCourses.map((course) => (
-                  <div
-                    key={course.id}
-                    className="bg-neutral-800 rounded-lg p-6 border border-white/10 hover:border-emerald-500/50 transition-all relative"
-                  >
-                    {course.isEnrolled && (
-                      <div className="absolute top-4 right-4">
-                        <span className="bg-emerald-600 text-white text-xs px-2 py-1 rounded-full">
-                          Enrolled
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-4xl mb-4 block">
-                          {course.thumbnail}
-                        </span>
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {course.title}
-                        </h3>
-                        <p className="text-gray-400 mb-4">
-                          {course.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                      {course.isEnrolled ? (
-                        <Link
-                          href={`/my-courses/${course.id}`}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md transition-colors inline-block text-center"
-                        >
-                          Continue Learning
-                        </Link>
-                      ) : (
-                        <button
-                          onClick={() => handleEnroll(course.id)}
-                          className="w-full bg-white hover:bg-emerald-100 text-emerald-700 py-2 px-4 rounded-md transition-colors"
-                        >
-                          Enroll Now
-                        </button>
+                {allCourses
+                  .sort((a, b) => {
+                    // Sort: unenrolled courses first, enrolled courses last
+                    if (!a.isEnrolled && b.isEnrolled) return -1;
+                    if (a.isEnrolled && !b.isEnrolled) return 1;
+                    return 0; // Keep original order within same enrollment status
+                  })
+                  .map((course) => (
+                    <div
+                      key={course.id}
+                      className="bg-neutral-800 rounded-lg p-6 border border-white/10 hover:border-emerald-500/50 transition-all relative"
+                    >
+                      {course.isEnrolled && (
+                        <div className="absolute top-4 right-4">
+                          <span className="bg-emerald-600 text-white text-xs px-2 py-1 rounded-full">
+                            Enrolled
+                          </span>
+                        </div>
                       )}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-4xl mb-4 block">
+                            {course.thumbnail}
+                          </span>
+                          <h3 className="text-xl font-bold text-white mb-2">
+                            {course.title}
+                          </h3>
+                          <p className="text-gray-400 mb-4">
+                            {course.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        {course.isEnrolled ? (
+                          <Link
+                            href={`/my-courses/${course.id}`}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md transition-colors inline-block text-center"
+                          >
+                            Continue Learning
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => handleEnroll(course.id)}
+                            className="w-full bg-white hover:bg-emerald-100 text-emerald-700 py-2 px-4 rounded-md transition-colors"
+                          >
+                            Enroll Now
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </section>
 
@@ -362,50 +385,57 @@ const MyCourses = () => {
                 All Courses
               </h2>
               <div className="grid gap-6 md:grid-cols-2">
-                {allCourses.map((course) => (
-                  <div
-                    key={course.id}
-                    className="bg-neutral-800 rounded-lg p-6 border border-white/10 hover:border-emerald-500/50 transition-all relative"
-                  >
-                    {course.isEnrolled && (
-                      <div className="absolute top-4 right-4">
-                        <span className="bg-emerald-600 text-white text-xs px-2 py-1 rounded-full">
-                          Enrolled
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-4xl mb-4 block">
-                          {course.thumbnail}
-                        </span>
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {course.title}
-                        </h3>
-                        <p className="text-gray-400 mb-4">
-                          {course.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                      {course.isEnrolled ? (
-                        <Link
-                          href={`/my-courses/${course.id}`}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md transition-colors inline-block text-center"
-                        >
-                          Continue Learning
-                        </Link>
-                      ) : (
-                        <button
-                          onClick={() => handleEnroll(course.id)}
-                          className="w-full bg-white hover:bg-emerald-100 text-emerald-700 py-2 px-4 rounded-md transition-colors"
-                        >
-                          Enroll Now
-                        </button>
+                {allCourses
+                  .sort((a, b) => {
+                    // Sort: unenrolled courses first, enrolled courses last
+                    if (!a.isEnrolled && b.isEnrolled) return -1;
+                    if (a.isEnrolled && !b.isEnrolled) return 1;
+                    return 0; // Keep original order within same enrollment status
+                  })
+                  .map((course) => (
+                    <div
+                      key={course.id}
+                      className="bg-neutral-800 rounded-lg p-6 border border-white/10 hover:border-emerald-500/50 transition-all relative"
+                    >
+                      {course.isEnrolled && (
+                        <div className="absolute top-4 right-4">
+                          <span className="bg-emerald-600 text-white text-xs px-2 py-1 rounded-full">
+                            Enrolled
+                          </span>
+                        </div>
                       )}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-4xl mb-4 block">
+                            {course.thumbnail}
+                          </span>
+                          <h3 className="text-xl font-bold text-white mb-2">
+                            {course.title}
+                          </h3>
+                          <p className="text-gray-400 mb-4">
+                            {course.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        {course.isEnrolled ? (
+                          <Link
+                            href={`/my-courses/${course.id}`}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md transition-colors inline-block text-center"
+                          >
+                            Continue Learning
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => handleEnroll(course.id)}
+                            className="w-full bg-white hover:bg-emerald-100 text-emerald-700 py-2 px-4 rounded-md transition-colors"
+                          >
+                            Enroll Now
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </section>
           </>
