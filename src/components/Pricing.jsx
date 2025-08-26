@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { courseService } from "@/libs/courseService";
-import { paymentService } from "@/libs/paymentService";
+import { locationService } from "@/libs/locationService";
 import config from "@/config";
 
 const Feature = ({ text }) => {
@@ -103,11 +103,10 @@ const Pricing = () => {
   useEffect(() => {
     const initializePricing = async () => {
       try {
-        // Detect user location
+        // Detect user location using centralized service
         try {
-          const response = await fetch("https://ipapi.co/json/");
-          const data = await response.json();
-          setIsIndianUser(data.country_code === "IN");
+          const isIndia = await locationService.detectUserLocation();
+          setIsIndianUser(isIndia);
         } catch (error) {
           console.error("Error detecting location:", error);
           setIsIndianUser(true); // Fallback to Indian pricing
@@ -226,6 +225,16 @@ const Pricing = () => {
     return () => clearInterval(interval);
   }, [allCourses.length]);
 
+  // Check for pending enrollment to avoid payment conflicts
+  useEffect(() => {
+    const pendingEnrollment = sessionStorage.getItem("pendingCourseEnrollment");
+    if (pendingEnrollment && user) {
+      // Clear any pending enrollment since user is now signed in
+      console.log("Clearing pending enrollment - user is signed in");
+      sessionStorage.removeItem("pendingCourseEnrollment");
+    }
+  }, [user]);
+
   // Handle manual course navigation
   const goToCourse = (index) => {
     setCurrentCourseIndex(index);
@@ -233,8 +242,18 @@ const Pricing = () => {
 
   const handleButtonClick = async () => {
     if (!user) {
+      if (!currentCourse) return;
+      
+      // Store the selected course for after sign-in
+      console.log("Storing course for post-signin enrollment:", currentCourse.id);
+      sessionStorage.setItem("pendingCourseEnrollment", JSON.stringify({
+        courseId: currentCourse.id,
+        courseTitle: currentCourse.title,
+        timestamp: Date.now()
+      }));
+      
       console.log(
-        "Pricing button clicked, dispatching open-signin-modal event with signup form"
+        "Pricing button clicked, dispatching open-signin-modal event"
       );
       window.dispatchEvent(
         new CustomEvent("open-signin-modal", {
@@ -259,8 +278,8 @@ const Pricing = () => {
         // User owns the course, redirect to it
         router.push(`/my-courses/${currentCourse.id}`);
       } else {
-        // User doesn't own the course, initiate purchase
-        await handlePurchase(currentCourse);
+        // User doesn't own the course, redirect to centralized enrollment process
+        router.push(`/process-enrollment?courseId=${currentCourse.id}`);
       }
     } catch (error) {
       console.error("Error checking course access:", error);
@@ -269,96 +288,6 @@ const Pricing = () => {
     }
   };
 
-  // Handle course purchase (similar to my-courses page)
-  const handlePurchase = async (course) => {
-    try {
-      // Get dynamic pricing for the course
-      const paymentAmount = await courseService.getCoursePaymentAmount(
-        course.id,
-        isIndianUser
-      );
-
-      // Create payment record
-      await paymentService.createPayment(user.id, course.id, paymentAmount);
-
-      const response = await fetch("/api/create-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: paymentAmount, courseId: course.id }),
-      });
-
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Payment initialization failed");
-
-      // Load Razorpay script dynamically
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-
-      await new Promise((resolve, reject) => {
-        script.onload = resolve;
-        script.onerror = reject;
-        document.body.appendChild(script);
-      });
-
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: paymentAmount * 100,
-        currency: "INR",
-        name: "FroggoCodes",
-        description: `${course.title} Course Purchase`,
-        order_id: data.orderId,
-        handler: async (response) => {
-          try {
-            await paymentService.updatePaymentStatus(
-              user.id,
-              course.id,
-              response.razorpay_payment_id,
-              "completed"
-            );
-
-            await courseService.updateLastAccessed(user.id, course.id, {
-              user_id: user.id,
-              course_id: course.id,
-              last_accessed: new Date().toISOString(),
-              courses: {
-                title: course.title,
-                description: course.description,
-                thumbnail: course.thumbnail,
-              },
-            });
-
-            // Update owned courses and redirect
-            setOwnedCourses((prev) => new Set([...prev, course.id]));
-            router.push(`/my-courses/${course.id}`);
-          } catch (error) {
-            console.error("Error in payment handler:", error);
-            alert(
-              "Payment successful but enrollment failed. Please contact support."
-            );
-          }
-        },
-        prefill: {
-          email: user.email,
-        },
-        modal: {
-          ondismiss: function () {
-            console.log("Payment modal closed");
-          },
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response) {
-        console.error("Payment failed:", response.error);
-        alert(response.error.description);
-      });
-      rzp.open();
-    } catch (error) {
-      console.error("Error in handlePurchase:", error);
-      alert(error.message || "Failed to process payment. Please try again.");
-    }
-  };
 
   const getButtonText = () => {
     if (!user) return "Enroll Now";

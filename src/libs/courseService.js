@@ -294,8 +294,6 @@ export const courseService = {
         videos: videosSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-          // Include course's bunny_library_id for easy access in VideoPlayer
-          course_bunny_library_id: courseData.bunny_library_id,
         })),
       };
     } catch (error) {

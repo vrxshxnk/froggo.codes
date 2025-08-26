@@ -147,19 +147,32 @@ const VideoPlayer = ({
 
   // Generate video embed URL
   const getEmbedUrl = () => {
-    if (!video || !video.bunny_video_id) {
+    if (!video || !courseId) {
       return null;
     }
 
-    // Get library ID from video's course data or fallback to global config
-    const libraryId = video.course_bunny_library_id || config.bunny.libraryId;
+    // Use single library ID from config
+    const libraryId = config.bunny.libraryId;
 
     if (!libraryId) {
-      console.error("No library ID found for video:", video);
+      console.error("No Bunny library ID configured");
       return null;
     }
 
-    return bunnyUtils.generateEmbedUrl(libraryId, video.bunny_video_id, {
+    // Generate collection-based video ID: courseId/VideoN
+    let videoId;
+    if (video.bunny_video_id) {
+      // Use existing bunny_video_id if available
+      videoId = video.bunny_video_id;
+    } else if (video.order) {
+      // Generate collection-based ID from video order
+      videoId = bunnyUtils.generateCollectionVideoId(courseId, video.order);
+    } else {
+      console.error("No video ID or order found for video:", video);
+      return null;
+    }
+
+    return bunnyUtils.generateEmbedUrl(libraryId, videoId, {
       autoplay: false,
       preload: true,
       muted: false,

@@ -97,9 +97,6 @@ const Profile = () => {
     }
   };
 
-  const handleResetPassword = async () => {
-    router.push("/reset-password");
-  };
 
   if (loading) {
     return (
@@ -280,16 +277,6 @@ const Profile = () => {
               </p>
             </div>
 
-            <div>
-              <h2 className="text-lg font-medium text-white">Password</h2>
-              <p className="text-emerald-500">••••••••</p>
-              <button
-                onClick={handleResetPassword}
-                className="text-emerald-500 hover:text-emerald-400 text-sm mt-2"
-              >
-                Reset Password
-              </button>
-            </div>
           </div>
         </div>
       </div>

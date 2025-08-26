@@ -2,16 +2,11 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
   onAuthStateChanged,
   signOut as firebaseSignOut,
   updateProfile,
-  sendEmailVerification,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updatePassword,
-  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
 } from "firebase/auth";
 import { auth, db } from "@/libs/firebase";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
@@ -25,14 +20,26 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && user.emailVerified) {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Get additional user data from Firestore
+        let dobFromFirestore = "";
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            dobFromFirestore = userDoc.data().dob || "";
+          }
+        } catch (error) {
+          console.error("Error fetching user data from Firestore:", error);
+        }
+
         setUser({
           id: user.uid,
           email: user.email,
           user_metadata: {
             full_name: user.displayName,
-            dob: user.photoURL,
+            dob: dobFromFirestore,
           },
           created_at: user.metadata.creationTime,
         });
@@ -45,91 +52,54 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  const signIn = async (email, password) => {
+  const signInWithGoogle = async () => {
     try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-      if (!user.emailVerified) {
-        await firebaseSignOut(auth);
-        throw new Error(
-          "Please verify your email before signing in. Check your inbox for the verification link."
-        );
+      // Create or update user document in Firestore
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+          await setDoc(userRef, {
+            email: user.email,
+            full_name: user.displayName,
+            dob: "", // Initialize with empty DOB since Google doesn't provide this
+            created_at: new Date().toISOString(),
+            name_changes: 0,
+            dob_changes: 0,
+          });
+        }
+      } catch (dbError) {
+        console.error("Firestore write error:", dbError);
+        // Continue with sign in even if Firestore write fails
       }
 
       return user;
     } catch (error) {
+      console.error("Google OAuth error details:", error);
       switch (error.code) {
-        case "auth/user-not-found":
-          throw new Error(
-            "No account found with this email. Please sign up first."
-          );
-        case "auth/invalid-credential":
-          throw new Error("Invalid email or password. Please try again.");
-        case "auth/too-many-requests":
-          throw new Error("Too many attempts. Please try again later.");
+        case "auth/cancelled-popup-request":
+        case "auth/popup-closed-by-user":
+          throw new Error("Sign in was cancelled. Please try again.");
+        case "auth/popup-blocked":
+          throw new Error("Popup blocked. Please allow popups and try again.");
+        case "auth/operation-not-allowed":
+          throw new Error("Google sign-in is not enabled. Please contact support.");
+        case "auth/unauthorized-domain":
+          throw new Error("This domain is not authorized. Please contact support.");
         default:
-          throw error;
+          throw new Error(`Google sign-in failed: ${error.message || error.code || 'Unknown error'}`);
       }
     }
   };
 
-  const signUp = async (email, password, fullName, dob) => {
-    try {
-      const { user } = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      await updateProfile(user, {
-        displayName: fullName,
-        photoURL: dob,
-      });
-
-      // Send verification email before Firestore write
-      try {
-        await sendEmailVerification(user);
-        console.log("Verification email sent successfully");
-      } catch (emailError) {
-        console.error("Error sending verification email:", emailError);
-        throw new Error(
-          "Failed to send verification email. Please contact support."
-        );
-      }
-
-      // Firestore write with error handling
-      try {
-        await setDoc(doc(db, "users", user.uid), {
-          email,
-          full_name: fullName,
-          dob,
-          created_at: new Date().toISOString(),
-          emailVerified: false,
-          name_changes: 0,
-          dob_changes: 0,
-        });
-      } catch (dbError) {
-        console.error("Firestore write error:", dbError);
-        // Continue with sign up even if Firestore write fails
-      }
-
-      await firebaseSignOut(auth);
-
-      return {
-        success: true,
-        message:
-          "Please check your email to verify your account before signing in.",
-      };
-    } catch (error) {
-      console.error("Signup error:", error);
-      if (error.code === "auth/email-already-in-use") {
-        throw new Error(
-          "This email is already registered. Please sign in instead."
-        );
-      }
-      throw new Error("An error occurred during sign up. Please try again.");
-    }
-  };
+  // Google OAuth handles both sign in and sign up
+  const signIn = signInWithGoogle;
+  const signUp = signInWithGoogle;
 
   const signOut = async () => {
     try {
@@ -140,58 +110,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const resendVerificationEmail = async (email, password) => {
-    try {
-      // Sign in the user temporarily to resend verification
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-
-      if (user.emailVerified) {
-        throw new Error("Email is already verified.");
-      }
-
-      await sendEmailVerification(user);
-      await firebaseSignOut(auth);
-
-      return {
-        success: true,
-        message: "Verification email has been resent. Please check your inbox.",
-      };
-    } catch (error) {
-      console.error("Resend verification error:", error);
-      throw new Error("Failed to resend verification email. Please try again.");
-    }
-  };
-
-  const resetPassword = async (oldPassword, newPassword) => {
-    try {
-      if (!auth.currentUser) {
-        throw new Error("You must be logged in to reset your password");
-      }
-
-      // Create credentials with the user's email and old password
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        oldPassword
-      );
-
-      // Re-authenticate user with old password
-      await reauthenticateWithCredential(auth.currentUser, credential);
-
-      // Update password
-      await updatePassword(auth.currentUser, newPassword);
-
-      return {
-        success: true,
-        message: "Password has been updated successfully.",
-      };
-    } catch (error) {
-      console.error("Reset password error:", error);
-      if (error.code === "auth/wrong-password") {
-        throw new Error("Incorrect current password. Please try again.");
-      }
-      throw new Error("Failed to update password. Please try again.");
-    }
-  };
 
   const updateUserFullName = async (newFullName) => {
     try {
@@ -210,7 +128,7 @@ export const AuthProvider = ({ children }) => {
         userData = {
           email: auth.currentUser.email,
           full_name: auth.currentUser.displayName || "",
-          dob: auth.currentUser.photoURL || "",
+          dob: "", // Initialize with empty DOB
           created_at: new Date().toISOString(),
           name_changes: 0,
           dob_changes: 0,
@@ -280,7 +198,7 @@ export const AuthProvider = ({ children }) => {
         userData = {
           email: auth.currentUser.email,
           full_name: auth.currentUser.displayName || "",
-          dob: auth.currentUser.photoURL || "",
+          dob: "", // Initialize with empty DOB
           created_at: new Date().toISOString(),
           name_changes: 0,
           dob_changes: 0,
@@ -303,10 +221,8 @@ export const AuthProvider = ({ children }) => {
         );
       }
 
-      // Update Firebase Auth profile
-      await updateProfile(auth.currentUser, {
-        photoURL: newDob,
-      });
+      // Google OAuth users don't need to update Firebase Auth profile for DOB
+      // DOB is stored only in Firestore
 
       // Update Firestore document
       await updateDoc(userRef, {
@@ -348,7 +264,7 @@ export const AuthProvider = ({ children }) => {
         const defaultUserData = {
           email: auth.currentUser.email,
           full_name: auth.currentUser.displayName || "",
-          dob: auth.currentUser.photoURL || "",
+          dob: "", // Initialize with empty DOB
           created_at: new Date().toISOString(),
           name_changes: 0,
           dob_changes: 0,
@@ -403,21 +319,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const sendPasswordResetEmail = async (email) => {
-    try {
-      await firebaseSendPasswordResetEmail(auth, email);
-      return {
-        success: true,
-        message: "Password reset link has been sent to your email.",
-      };
-    } catch (error) {
-      console.error("Password reset error:", error);
-      if (error.code === "auth/user-not-found") {
-        throw new Error("No account found with this email.");
-      }
-      throw new Error("Failed to send password reset email. Please try again.");
-    }
-  };
 
   return (
     <AuthContext.Provider
@@ -427,12 +328,10 @@ export const AuthProvider = ({ children }) => {
         signIn,
         signUp,
         signOut,
-        resendVerificationEmail,
-        resetPassword,
+        signInWithGoogle,
         updateUserFullName,
         updateUserDob,
         getRemainingChanges,
-        sendPasswordResetEmail,
       }}
     >
       {children}

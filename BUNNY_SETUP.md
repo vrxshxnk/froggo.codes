@@ -2,71 +2,71 @@
 
 ## Overview
 
-This system uses **Firebase Firestore** for video metadata (titles, descriptions, duration) and **Bunny.net** for video streaming. Each course gets its own Bunny.net library for better organization.
+This system uses **Firebase Firestore** for video metadata (titles, descriptions, duration) and **Bunny.net** for video streaming. All courses use a **single Bunny.net library** with **collections** for better organization and cost efficiency.
 
-## Architecture
+## New Architecture (Collection-Based)
 
 ```
-Firebase Firestore (Metadata) + Bunny.net (Video Streaming)
-├── Course: "Zero To Hero" → Bunny Library: 123456
-│   ├── Video1, Video2, Video3... (30 videos)
-├── Course: "AI SaaS" → Bunny Library: 789012
-│   ├── Video1, Video2, Video3... (10 videos)
+Firebase Firestore (Metadata) + Bunny.net (Single Library with Collections)
+├── Single Bunny Library: 123456
+│   ├── Collection: "zero-to-hero/"
+│   │   ├── zero-to-hero/Video1, zero-to-hero/Video2... (30 videos)
+│   ├── Collection: "ai-saas/"
+│   │   ├── ai-saas/Video1, ai-saas/Video2... (10 videos)
+│   └── Collection: "course-name/"
+│       ├── course-name/Video1, course-name/Video2...
 ```
 
 ## Step-by-Step Setup for Beginners
 
-### Step 1: Create Bunny.net Libraries
+### Step 1: Create Single Bunny.net Library
 
 1. **Login to Bunny.net Dashboard**
-2. **For each course, create a separate library:**
+2. **Create ONE library for all courses:**
    - Go to **Stream → Libraries**
    - Click **"Add Library"**
-   - Name it descriptively (e.g., "zero-to-hero-course")
+   - Name it descriptively (e.g., "froggo-courses-main")
    - **Copy the Library ID** (you'll need this!)
 
 **Example:**
 
-- Course "Zero To Hero" → Library ID: `123456`
-- Course "AI SaaS" → Library ID: `789012`
+- Main Library ID: `123456` (for ALL courses)
 
-### Step 2: Upload Videos to Libraries
+### Step 2: Upload Videos Using Collections
 
-**Important:** Name videos simply as `Video1`, `Video2`, `Video3`, etc. within each library.
+**Important:** Use collections (folders) to organize videos by course. Name videos as `courseId/Video1`, `courseId/Video2`, etc.
 
-**For "Zero To Hero" library (123456):**
+**In your single library (123456):**
 
 ```
-Video1 (Introduction to Programming)
-Video2 (Variables and Data Types)
-Video3 (Functions and Loops)
+Collection: zero-to-hero/
+├── zero-to-hero/Video1 (Introduction to Programming)
+├── zero-to-hero/Video2 (Variables and Data Types)
+├── zero-to-hero/Video3 (Functions and Loops)
 ...
-Video30 (Final Project)
-```
+├── zero-to-hero/Video30 (Final Project)
 
-**For "AI SaaS" library (789012):**
-
-```
-Video1 (Project Setup)
-Video2 (Database Design)
+Collection: ai-saas/
+├── ai-saas/Video1 (Project Setup)
+├── ai-saas/Video2 (Database Design)
 ...
-Video10 (Deployment)
+├── ai-saas/Video10 (Deployment)
 ```
 
 ### Step 3: Update Firebase Schema
 
 #### Courses Collection
 
-Add `bunny_library_id` to each course:
+**No changes needed!** Courses remain the same since we use a single library:
 
 ```javascript
-// Collection: "courses"
+// Collection: "courses" - NO CHANGES REQUIRED
 {
   id: "zero-to-hero",
   title: "Zero To Hero",
   description: "Complete coding bootcamp",
   price: 299,
-  bunny_library_id: "123456",  // ← Add this!
+  // bunny_library_id no longer needed - using single library
   // ... other fields
 }
 
@@ -75,7 +75,7 @@ Add `bunny_library_id` to each course:
   title: "Build an AI SaaS",
   description: "Learn to build AI applications",
   price: 199,
-  bunny_library_id: "789012",  // ← Add this!
+  // bunny_library_id no longer needed - using single library
   // ... other fields
 }
 ```
@@ -92,8 +92,8 @@ Structure your videos like this:
   description: "Learn the basics of programming",
   duration: "15:30",
   course_id: "zero-to-hero",
-  order: 1,                    // Video sequence in course
-  bunny_video_id: "Video1"     // Matches Bunny.net video name
+  order: 1,                           // Video sequence in course
+  bunny_video_id: "zero-to-hero/Video1"  // Collection-based ID
 }
 
 {
@@ -103,7 +103,7 @@ Structure your videos like this:
   duration: "12:45",
   course_id: "zero-to-hero",
   order: 2,
-  bunny_video_id: "Video2"
+  bunny_video_id: "zero-to-hero/Video2"  // Collection-based ID
 }
 
 // Videos for "AI SaaS" course
@@ -114,7 +114,7 @@ Structure your videos like this:
   duration: "18:20",
   course_id: "ai-saas",
   order: 1,
-  bunny_video_id: "Video1"     // Same naming, different library!
+  bunny_video_id: "ai-saas/Video1"       // Collection-based ID
 }
 ```
 
@@ -123,8 +123,10 @@ Structure your videos like this:
 Add to your `.env.local`:
 
 ```bash
-# Fallback library ID (optional, for backward compatibility)
-NEXT_PUBLIC_BUNNY_LIBRARY_ID=your-default-library-id
+# Single Bunny.net library ID for all courses
+NEXT_PUBLIC_BUNNY_LIBRARY_ID=your-single-library-id
+# Bunny.net API key for management operations
+BUNNY_API_KEY=your-bunny-api-key
 ```
 
 ## How It All Works Together
@@ -133,7 +135,7 @@ NEXT_PUBLIC_BUNNY_LIBRARY_ID=your-default-library-id
 
 ```javascript
 // User clicks watch on "Introduction to Programming"
-handleWatchVideo(video); // video.bunny_video_id = "Video1"
+handleWatchVideo(video); // video.bunny_video_id = "zero-to-hero/Video1"
 ```
 
 ### 2. **System Verifies Access**
@@ -146,9 +148,9 @@ const hasAccess = await courseService.verifyUserCourseAccess(userId, courseId);
 ### 3. **Video URL Generation**
 
 ```javascript
-// Get course's library ID: "123456"
-// Combine with video ID: "Video1"
-// Result: https://iframe.mediadelivery.net/embed/123456/Video1
+// Get single library ID: "123456"
+// Combine with collection-based video ID: "zero-to-hero/Video1"
+// Result: https://iframe.mediadelivery.net/embed/123456/zero-to-hero/Video1
 const embedUrl = bunnyUtils.generateEmbedUrl(libraryId, videoId);
 ```
 
@@ -161,19 +163,20 @@ playerInstance.on("timeupdate", (data) => {
 });
 ```
 
-## Benefits of This Approach
+## Benefits of This Collection-Based Approach
 
-✅ **Better Organization**: Each course has its own video library  
-✅ **Simpler Video Names**: Just Video1, Video2, etc. per course  
-✅ **Easier Management**: Upload/manage videos per course separately  
-✅ **Scalable**: Add unlimited courses without naming conflicts  
-✅ **Secure**: Per-course access control and payment verification
+✅ **Cost Efficient**: Single library reduces Bunny.net costs  
+✅ **Better Organization**: Collections keep courses separate within one library  
+✅ **Simpler Management**: One library to manage instead of multiple  
+✅ **Scalable**: Add unlimited courses as collections  
+✅ **Secure**: Per-course access control and payment verification maintained  
+✅ **Cleaner URLs**: Collection-based video IDs are more organized
 
 ## Data Flow Summary
 
 ```
 User Request → Auth Check → Payment Verification →
-Course Library ID + Video ID → Bunny.net Embed URL →
+Single Library ID + Collection/Video ID → Bunny.net Embed URL →
 Video Streams → Progress Tracking → Firebase Update
 ```
 
@@ -181,29 +184,31 @@ Video Streams → Progress Tracking → Firebase Update
 
 ## Video Setup in Firestore
 
-For each video document in your `videos` collection, you can optionally add:
+For each video document in your `videos` collection:
 
 ```javascript
 {
   // Existing fields
   title: "Introduction to JavaScript",
   duration: "15:30",
-  course_id: "Course1",
+  course_id: "zero-to-hero",
+  order: 1,
 
-  // New optional fields for Bunny.net
-  bunny_video_id: "Course1-Video1", // Will auto-generate if not present
-  bunny_library_id: "your-library-id" // Uses env var if not present
+  // Collection-based Bunny.net ID
+  bunny_video_id: "zero-to-hero/Video1", // Collection-based ID
+  // No bunny_library_id needed - using single library from config
 }
 ```
 
 ## Video Naming Convention
 
-Videos in Bunny.net should follow this naming pattern:
+Videos in Bunny.net should follow this collection-based naming pattern:
 
-- Course1-Video1
-- Course1-Video2
-- Course1-Video3
-- Course2-Video1
+- zero-to-hero/Video1
+- zero-to-hero/Video2
+- zero-to-hero/Video3
+- ai-saas/Video1
+- ai-saas/Video2
 - etc.
 
 ## Features

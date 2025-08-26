@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import SignInModal from "./auth/SignInModal";
 
@@ -18,6 +19,11 @@ const links = [
   {
     href: "pricing",
     label: "Pricing",
+  },
+  {
+    href: "/blog",
+    label: "Blog",
+    isFullPath: true,
   },
   {
     href: "faq",
@@ -176,6 +182,13 @@ const Header = () => {
                 href="/"
                 // title={`${config.appName} homepage`}
               >
+                <Image
+                  src="/favicon.ico"
+                  alt="FroggoCodes Logo"
+                  width={isScrolled ? 24 : 32}
+                  height={isScrolled ? 24 : 32}
+                  className="transition-all duration-300 ease-in-out"
+                />
                 <span
                   className={`font-extrabold ${
                     isScrolled
@@ -183,7 +196,7 @@ const Header = () => {
                       : "text-2xl md:text-3xl text-emerald-400"
                   } transition-all duration-300 ease-in-out`}
                 >
-                  🐸 FroggoCodes
+                  FroggoCodes
                 </span>
               </Link>
             </div>
@@ -241,12 +254,19 @@ const Header = () => {
             >
               <div className="flex items-center justify-between w-full">
                 <Link
-                  className="flex items-center gap-0 shrink-0 text-white justify-center w-full"
+                  className="flex items-center gap-2 shrink-0 text-white justify-center w-full"
                   title={`FroggoCodes homepage`}
                   href="/"
                 >
+                  <Image
+                    src="/favicon.ico"
+                    alt="FroggoCodes Logo"
+                    width={24}
+                    height={24}
+                    className="transition-all duration-300 ease-in-out"
+                  />
                   <span className="font-extrabold text-lg text-center text-white">
-                    🐸 FroggoCodes
+                    FroggoCodes
                   </span>
                 </Link>
                 <button

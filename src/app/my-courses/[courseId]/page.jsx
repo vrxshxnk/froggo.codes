@@ -48,10 +48,10 @@ const CourseDetail = ({ params }) => {
             videos: courseDetails.videos.map((video, index) => ({
               ...video,
               completed: progressMap[video.id] || false,
-              // Add bunny_video_id if not present
-              // Use simple Video1, Video2, etc. since each course has its own library
+              // Add collection-based bunny_video_id if not present
               bunny_video_id:
-                video.bunny_video_id || `Video${video.order || index + 1}`,
+                video.bunny_video_id ||
+                `${courseId}/Video${video.order || index + 1}`,
             })),
           });
           setProgress(progressMap);

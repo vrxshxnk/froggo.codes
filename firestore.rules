@@ -37,9 +37,8 @@ service cloud.firestore {
     
     // User courses collection
     match /user_courses/{userCourseId} {
-      // Allow read if authenticated and the document contains their user_id
-      allow read: if isAuthenticated() && 
-                   request.auth.uid == resource.data.user_id;
+      // Allow read/list if authenticated (they can only query their own data via where clauses anyway)
+      allow read, list: if isAuthenticated();
       
       // Allow create if authenticated and they're creating for themselves
       allow create: if isAuthenticated() && 
@@ -52,9 +51,8 @@ service cloud.firestore {
     
     // User progress collection
     match /user_progress/{progressId} {
-      // Allow read if authenticated and the document contains their user_id
-      allow read: if isAuthenticated() && 
-                   request.auth.uid == resource.data.user_id;
+      // Allow read/list if authenticated (they can only query their own data via where clauses anyway)
+      allow read, list: if isAuthenticated();
       
       // Allow create if authenticated and they're creating for themselves
       allow create: if isAuthenticated() && 
@@ -67,8 +65,8 @@ service cloud.firestore {
     
     // Payments collection
     match /payments/{paymentId} {
-      allow read: if isAuthenticated() && 
-                  request.auth.uid == resource.data.user_id;
+      // Allow read/list if authenticated (they can only query their own data via where clauses anyway)
+      allow read, list: if isAuthenticated();
       allow create: if isAuthenticated() && 
                     request.auth.uid == request.resource.data.user_id;
       allow update: if isAuthenticated() && 

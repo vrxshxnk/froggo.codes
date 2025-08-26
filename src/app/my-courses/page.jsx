@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { courseService } from "@/libs/courseService";
 import { paymentService } from "@/libs/paymentService";
+import { locationService } from "@/libs/locationService";
 import Link from "next/link";
 
 const MyCourses = () => {
@@ -138,12 +139,10 @@ const MyCourses = () => {
       const course = allCourses.find((c) => c.id === courseId);
       if (!course) throw new Error("Course not found");
 
-      // Detect user location for pricing
+      // Detect user location for pricing using centralized service
       let isIndianUser = true; // Default to Indian pricing
       try {
-        const locationResponse = await fetch("https://ipapi.co/json/");
-        const locationData = await locationResponse.json();
-        isIndianUser = locationData.country_code === "IN";
+        isIndianUser = await locationService.detectUserLocation();
       } catch (locationError) {
         console.warn("Could not detect location, using Indian pricing");
       }

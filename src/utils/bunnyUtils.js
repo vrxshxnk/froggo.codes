@@ -6,8 +6,8 @@ import config from "@/config";
 export const bunnyUtils = {
   /**
    * Generate Bunny.net embed URL for a video
-   * @param {string} libraryId - The Bunny.net library ID for this course
-   * @param {string} videoId - The Bunny.net video ID
+   * @param {string} libraryId - The Bunny.net library ID (single library for all courses)
+   * @param {string} videoId - The Bunny.net video ID (includes collection/course prefix)
    * @param {Object} options - Optional parameters for the embed URL
    * @returns {string} Complete embed URL
    */
@@ -28,7 +28,17 @@ export const bunnyUtils = {
   },
 
   /**
-   * Generate Bunny.net video ID from video sequence
+   * Generate collection-based video ID for single library approach
+   * @param {string} courseId - The course identifier (used as collection name)
+   * @param {number} videoSequence - The video sequence number in the course
+   * @returns {string} Bunny.net video ID with collection prefix
+   */
+  generateCollectionVideoId(courseId, videoSequence) {
+    return `${courseId}/Video${videoSequence}`;
+  },
+
+  /**
+   * Legacy: Generate Bunny.net video ID from video sequence (for backward compatibility)
    * @param {number} videoSequence - The video sequence number in the course
    * @returns {string} Bunny.net video ID
    */
