@@ -101,9 +101,7 @@ const Waitlist = () => {
 
         {/* Subhead */}
         <p className="mt-6 max-w-xl text-center text-base md:text-lg text-white/70 leading-relaxed opacity-0 animate-fade-in-delayed-more">
-          We&apos;re putting the finishing touches on the bootcamp that takes
-          you from zero to shipping AI-powered SaaS. Join the waitlist to be
-          first in line — and lock in launch-day perks.
+          Use AI to ship money-making SaaS products in 30 days. First 100 users get a huge discount on the bootcamp.
         </p>
 
         {/* Form */}
