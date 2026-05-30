@@ -101,7 +101,8 @@ const Waitlist = () => {
 
         {/* Subhead */}
         <p className="mt-6 max-w-xl text-center text-base md:text-lg text-white/70 leading-relaxed opacity-0 animate-fade-in-delayed-more">
-          Use AI to ship money-making SaaS products in 30 days. First 100 users get a huge discount on the bootcamp.
+          Use AI to ship money-making SaaS products in 30 days. 
+          <br /> First 100 users get a huge discount on the bootcamp.
         </p>
 
         {/* Form */}
