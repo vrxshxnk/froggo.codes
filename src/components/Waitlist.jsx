@@ -3,8 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 
-const WEB3FORMS_ACCESS_KEY = "69d8e048-d268-4625-bfc6-96cb69df4fdd";
-
 const Waitlist = () => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
@@ -26,19 +24,13 @@ const Waitlist = () => {
     setErrorMessage("");
 
     try {
-      const res = await fetch("https://api.web3forms.com/submit", {
+      const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          subject: "New FroggoCodes Waitlist Signup",
-          from_name: "FroggoCodes Waitlist",
-          email: trimmed,
-          message: `New waitlist signup: ${trimmed}`,
-        }),
+        body: JSON.stringify({ email: trimmed }),
       });
 
       const data = await res.json();
