@@ -1,12 +1,29 @@
 // src/app/api/waitlist/route.js
-// Public waitlist signup endpoint — writes to Firestore, rate-limited by IP.
+// Public waitlist signup endpoint — writes to Firestore.
+//
+// Firebase Admin is initialized inline here (instead of importing a shared
+// helper) so this route doesn't depend on the WIP libs in src/libs/. When
+// firebaseAdmin.js and ratelimit.js land on origin, swap these in and add
+// rate limiting back via generalRateLimiter.
 import { NextResponse } from 'next/server';
 import { createHash } from 'crypto';
-import { FieldValue } from 'firebase-admin/firestore';
-import { adminDb } from '@/libs/firebaseAdmin';
-import { generalRateLimiter, checkRateLimit } from '@/libs/ratelimit';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function getAdminDb() {
+  if (getApps().length === 0) {
+    initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+  }
+  return getFirestore();
+}
 
 function getClientIp(req) {
   const xff = req.headers.get('x-forwarded-for');
@@ -16,23 +33,6 @@ function getClientIp(req) {
 
 export async function POST(req) {
   try {
-    const ip = getClientIp(req);
-
-    const rateLimit = await checkRateLimit(generalRateLimiter, `waitlist:${ip}`);
-    if (!rateLimit.success) {
-      return NextResponse.json(
-        { success: false, message: 'Too many requests. Please try again shortly.' },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimit.limit.toString(),
-            'X-RateLimit-Remaining': rateLimit.remaining.toString(),
-            'X-RateLimit-Reset': rateLimit.reset.toString(),
-          },
-        }
-      );
-    }
-
     let body;
     try {
       body = await req.json();
@@ -53,10 +53,9 @@ export async function POST(req) {
       );
     }
 
-    // Use a hash of the normalized email as the doc ID so re-submissions
-    // merge into the same record (natural dedup) and the doc ID never contains
-    // characters Firestore disallows.
+    const adminDb = getAdminDb();
     const docId = createHash('sha256').update(email).digest('hex');
+    const ip = getClientIp(req);
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
     const docRef = adminDb.collection('waitlist').doc(docId);
