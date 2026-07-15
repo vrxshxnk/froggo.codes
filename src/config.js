@@ -18,6 +18,26 @@ const config = {
     embedBaseUrl: "https://iframe.mediadelivery.net/embed",
     // Player.js library URL hosted on Bunny.net CDN
     playerJsUrl: "//assets.mediadelivery.net/playerjs/player-0.1.0.min.js",
+    // Bunny video GUID of the public course intro video shown on the landing
+    // page. Signed like any other video but viewable without sign-in.
+    introVideoId: process.env.NEXT_PUBLIC_BUNNY_INTRO_VIDEO_ID || "",
+  },
+
+  // Paddle Billing — merchant of record for international customers
+  // (Razorpay stays for INR). Courses opt in via a paddle_price_id field.
+  paddle: {
+    clientToken: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || "",
+    // "sandbox" or "production"
+    environment: process.env.NEXT_PUBLIC_PADDLE_ENV || "production",
+  },
+
+  // Resend — transactional email (receipts, welcome emails).
+  // Requires RESEND_API_KEY in the environment and a verified sending domain.
+  resend: {
+    // Email 'From' field. The domain must be verified in Resend.
+    from: "FroggoCodes <noreply@froggo.codes>",
+    // Replies to transactional emails land here
+    supportEmail: "vrxshxnk@gmail.com",
   },
   //   crisp: {
   //     // Crisp website ID. IF YOU DON'T USE CRISP: just remove this => Then add a support email in this config file (mailgun.supportEmail) otherwise customer support won't work.
@@ -81,18 +101,6 @@ const config = {
   //     bucket: "bucket-name",
   //     bucketUrl: `https://bucket-name.s3.amazonaws.com/`,
   //     cdn: "https://cdn-id.cloudfront.net/",
-  //   },
-  //   mailgun: {
-  //     // subdomain to use when sending emails, if you don't have a subdomain, just remove it. Highly recommended to have one (i.e. mg.yourdomain.com or mail.yourdomain.com)
-  //     subdomain: "mail",
-  //     // REQUIRED — Email 'From' field to be used when sending magic login links
-  //     fromNoReply: `MinuteShip <noreply@mail.minuteship.com>`,
-  //     // REQUIRED — Email 'From' field to be used when sending other emails, like abandoned carts, updates etc..
-  //     fromAdmin: `Vrish @ FroggoCodes <vrish@mail.minuteship.com>`,
-  //     // Email shown to customer if need support. Leave empty if not needed => if empty, set up Crisp above, otherwise you won't be able to offer customer support."
-  //     supportEmail: "namaste@mail.minuteship.com",
-  //     // When someone replies to supportEmail sent by the app, forward it to the email below (otherwise it's lost). If you set supportEmail to empty, this will be ignored.
-  //     forwardRepliesTo: "vrishcodes@gmail.com",
   //   },
   //   colors: {
   //     // REQUIRED — The DaisyUI theme to use (added to the main layout.js). Leave blank for default (light & dark mode). If you any other theme than light/dark, you need to add it in config.tailwind.js in daisyui.themes.

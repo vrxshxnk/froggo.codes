@@ -71,7 +71,20 @@ export const AuthProvider = ({ children }) => {
             created_at: new Date().toISOString(),
             name_changes: 0,
             dob_changes: 0,
+            newsletter_opt_in: true,
+            newsletter_consent_at: new Date().toISOString(),
           });
+        } else if (userDoc.data()?.newsletter_opt_in === undefined) {
+          // Backfill consent for accounts created before the newsletter
+          // disclosure existed; never overwrite an explicit opt-out.
+          await setDoc(
+            userRef,
+            {
+              newsletter_opt_in: true,
+              newsletter_consent_at: new Date().toISOString(),
+            },
+            { merge: true }
+          );
         }
       } catch (dbError) {
         console.error("Firestore write error:", dbError);

@@ -1,13 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
-const SignInModal = ({ isOpen, onClose }) => {
+const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const { signInWithGoogle } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setError("");
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
 
   const handleGoogleSignIn = async () => {
@@ -22,7 +36,6 @@ const SignInModal = ({ isOpen, onClose }) => {
       const pendingEnrollment = sessionStorage.getItem("pendingCourseEnrollment");
       
       if (pendingEnrollment) {
-        console.log("Found pending course enrollment, processing...");
         const enrollmentData = JSON.parse(pendingEnrollment);
         
         // Clear the pending enrollment
@@ -41,7 +54,9 @@ const SignInModal = ({ isOpen, onClose }) => {
       }
       
       // Default redirect to my-courses if no pending enrollment
-      router.push("/my-courses");
+      if (redirectOnSuccess) {
+        router.push("/my-courses");
+      }
     } catch (error) {
       console.error("Google sign-in error:", error);
       setError(error.message);
@@ -59,7 +74,12 @@ const SignInModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
+    >
       <div className="bg-[#181818] rounded-lg p-8 max-w-md w-full border border-white/20 shadow-lg shadow-black/50">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">Sign In</h2>
@@ -124,7 +144,9 @@ const SignInModal = ({ isOpen, onClose }) => {
           </button>
 
           <div className="text-center text-sm text-gray-400">
-            By signing in, you agree to our Terms of Service and Privacy Policy.
+            By continuing, you agree to our Terms of Service and Privacy
+            Policy, and to receive FroggoCodes updates and newsletters. You can
+            unsubscribe anytime.
           </div>
         </div>
       </div>

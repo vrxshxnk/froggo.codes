@@ -1,48 +1,131 @@
 "use client";
 
-import { useEffect, useState, Suspense, useCallback } from "react";
+import { useEffect, useState, Suspense, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { courseService } from "@/libs/courseService";
-import { paymentService } from "@/libs/paymentService";
 import { locationService } from "@/libs/locationService";
+import { auth } from "@/libs/firebase";
+import config from "@/config";
 
 const ProcessEnrollmentContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const [status, setStatus] = useState("checking"); // checking, owned, purchasing, error
+  const [status, setStatus] = useState("checking"); // checking, owned, purchasing, completing, error
   const [error, setError] = useState("");
   const [course, setCourse] = useState(null);
-  const [isIndianUser, setIsIndianUser] = useState(false);
+  const hasStartedRef = useRef(false);
 
   const courseId = searchParams.get("courseId");
 
-  const initiatePayment = useCallback(async (courseData) => {
+  // After a Paddle checkout completes, access is granted by the webhook —
+  // poll until the enrollment lands, then send the user into the course
+  const pollForAccess = useCallback(
+    async (targetCourseId) => {
+      const maxAttempts = 20; // ~40 seconds
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const hasAccess = await courseService.verifyUserCourseAccess(
+          user.id,
+          targetCourseId
+        );
+
+        if (hasAccess) {
+          sessionStorage.removeItem("pendingCourseEnrollment");
+          router.push(`/my-courses/${targetCourseId}`);
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      setError(
+        "Payment received! Your course access is being set up — check My Courses in a minute."
+      );
+      setStatus("error");
+    },
+    [user, router]
+  );
+
+  // International checkout via Paddle (merchant of record — handles cards,
+  // PayPal, and tax). Fulfillment happens in /api/paddle-webhook.
+  const initiatePaddleCheckout = useCallback(
+    async (courseData) => {
+      if (!window.Paddle) {
+        const script = document.createElement("script");
+        script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+          document.body.appendChild(script);
+        });
+      }
+
+      let checkoutCompleted = false;
+
+      if (config.paddle.environment === "sandbox") {
+        window.Paddle.Environment.set("sandbox");
+      }
+
+      window.Paddle.Initialize({
+        token: config.paddle.clientToken,
+        eventCallback: (event) => {
+          if (event.name === "checkout.completed") {
+            checkoutCompleted = true;
+            setStatus("completing");
+            pollForAccess(courseData.id);
+          } else if (event.name === "checkout.closed" && !checkoutCompleted) {
+            sessionStorage.removeItem("pendingCourseEnrollment");
+            router.push("/my-courses");
+          }
+        },
+      });
+
+      window.Paddle.Checkout.open({
+        items: [{ priceId: courseData.paddle_price_id, quantity: 1 }],
+        customData: {
+          userId: user.id,
+          courseId: courseData.id,
+          email: user.email,
+        },
+        customer: { email: user.email },
+        settings: { displayMode: "overlay", theme: "dark" },
+      });
+    },
+    [user, router, pollForAccess]
+  );
+
+  const initiatePayment = useCallback(async (courseData, isIndianUser) => {
     try {
-      // Check if there's already a payment in progress to prevent duplicates
-      if (status === "purchasing") {
-        console.log("Payment already in progress, preventing duplicate");
+      // International buyers go through Paddle when the course has a Paddle
+      // price configured; Indian buyers (and the fallback) use Razorpay in INR
+      if (
+        !isIndianUser &&
+        courseData.paddle_price_id &&
+        config.paddle.clientToken
+      ) {
+        await initiatePaddleCheckout(courseData);
         return;
       }
 
-      console.log("Starting payment for course:", courseData.title, "Amount:", courseData.pricing?.discounted);
+      // Get Firebase ID token for secure API authentication
+      const idToken = await auth.currentUser?.getIdToken();
 
-      // Get dynamic pricing for the course
-      const paymentAmount = await courseService.getCoursePaymentAmount(
-        courseData.id,
-        isIndianUser
-      );
+      if (!idToken) {
+        throw new Error("Unable to authenticate. Please log in again.");
+      }
 
-      console.log("Payment amount from service:", paymentAmount);
-
-      // Create payment record
-      await paymentService.createPayment(user.id, courseData.id, paymentAmount);
-
+      // The server derives the price from the course document and records
+      // the pending payment — the client only says which course
       const response = await fetch("/api/create-payment", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: paymentAmount, courseId: courseData.id }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ courseId: courseData.id }),
       });
 
       const data = await response.json();
@@ -64,23 +147,42 @@ const ProcessEnrollmentContent = () => {
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: paymentAmount * 100,
-        currency: "INR",
+        amount: data.amount * 100,
+        currency: data.currency || "INR",
         name: "FroggoCodes",
         description: `${courseData.title} Course Purchase`,
         order_id: data.orderId,
-        handler: async (response) => {
+        handler: async (razorpayResponse) => {
           try {
-            console.log("Payment successful, processing enrollment...");
             setStatus("completing");
 
-            await paymentService.updatePaymentStatus(
-              user.id,
-              courseData.id,
-              response.razorpay_payment_id,
-              "completed"
-            );
+            // Verify payment signature server-side before granting access
+            const idToken = await auth.currentUser?.getIdToken();
 
+            if (!idToken) {
+              throw new Error("Unable to authenticate. Please log in again.");
+            }
+
+            const verifyResponse = await fetch("/api/verify-payment", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${idToken}`,
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                razorpay_order_id: razorpayResponse.razorpay_order_id,
+                razorpay_signature: razorpayResponse.razorpay_signature,
+                courseId: courseData.id,
+              }),
+            });
+
+            if (!verifyResponse.ok) {
+              const errorData = await verifyResponse.json();
+              throw new Error(errorData.error || "Payment verification failed");
+            }
+
+            // Update display metadata (title, thumbnail) — non-security, best-effort
             await courseService.updateLastAccessed(user.id, courseData.id, {
               user_id: user.id,
               course_id: courseData.id,
@@ -92,14 +194,11 @@ const ProcessEnrollmentContent = () => {
               },
             });
 
-            // Clear any session storage to prevent conflicts
             sessionStorage.removeItem("pendingCourseEnrollment");
-
-            // Redirect to course
             router.push(`/my-courses/${courseData.id}`);
           } catch (error) {
             console.error("Error in payment handler:", error);
-            setError("Payment successful but enrollment failed. Please contact support.");
+            setError("Payment verification failed. Please contact support.");
             setStatus("error");
           }
         },
@@ -108,8 +207,6 @@ const ProcessEnrollmentContent = () => {
         },
         modal: {
           ondismiss: function () {
-            console.log("Payment modal closed, redirecting to courses");
-            // Clear session storage when modal is dismissed
             sessionStorage.removeItem("pendingCourseEnrollment");
             router.push("/my-courses");
           },
@@ -130,9 +227,11 @@ const ProcessEnrollmentContent = () => {
       setError(error.message || "Failed to process payment. Please try again.");
       setStatus("error");
     }
-  }, [user, isIndianUser, router, status]);
+  }, [user, router, initiatePaddleCheckout]);
 
   useEffect(() => {
+    if (hasStartedRef.current) return;
+
     const processEnrollment = async () => {
       if (authLoading) return;
 
@@ -147,17 +246,19 @@ const ProcessEnrollmentContent = () => {
         return;
       }
 
+      hasStartedRef.current = true;
+
       try {
-        // Detect user location for pricing using centralized service
+        // Detect user location for pricing as a local variable (not state)
+        // to avoid re-triggering this effect
+        let isIndianUser = true;
         try {
-          const isIndia = await locationService.detectUserLocation();
-          setIsIndianUser(isIndia);
-        } catch (error) {
-          console.error("Error detecting location:", error);
-          setIsIndianUser(true); // Fallback to Indian pricing
+          isIndianUser = await locationService.detectUserLocation();
+        } catch {
+          // Fallback to Indian pricing
         }
 
-        // Get course details
+        // Get course details with correct locale
         const courseData = await courseService.getCourseWithPricing(courseId, isIndianUser);
         setCourse(courseData);
 
@@ -166,7 +267,6 @@ const ProcessEnrollmentContent = () => {
 
         if (hasAccess) {
           setStatus("owned");
-          // Redirect to course after 2 seconds
           setTimeout(() => {
             router.push(`/my-courses/${courseId}`);
           }, 2000);
@@ -175,7 +275,7 @@ const ProcessEnrollmentContent = () => {
 
         // User doesn't own the course, start payment process
         setStatus("purchasing");
-        await initiatePayment(courseData);
+        await initiatePayment(courseData, isIndianUser);
 
       } catch (error) {
         console.error("Error processing enrollment:", error);
@@ -185,7 +285,7 @@ const ProcessEnrollmentContent = () => {
     };
 
     processEnrollment();
-  }, [authLoading, user, courseId, router, isIndianUser, initiatePayment]);
+  }, [authLoading, user, courseId, router, initiatePayment]);
 
   if (authLoading) {
     return (

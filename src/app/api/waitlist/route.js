@@ -1,29 +1,13 @@
 // src/app/api/waitlist/route.js
-// Public waitlist signup endpoint — writes to Firestore.
-//
-// Firebase Admin is initialized inline here (instead of importing a shared
-// helper) so this route doesn't depend on the WIP libs in src/libs/. When
-// firebaseAdmin.js and ratelimit.js land on origin, swap these in and add
-// rate limiting back via generalRateLimiter.
+// Public waitlist signup endpoint — writes to the Firestore `waitlist`
+// collection via the Admin SDK, rate-limited per IP.
 import { NextResponse } from 'next/server';
 import { createHash } from 'crypto';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
+import { adminDb } from '@/libs/firebaseAdmin';
+import { generalRateLimiter, checkRateLimit } from '@/libs/ratelimit';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function getAdminDb() {
-  if (getApps().length === 0) {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return getFirestore();
-}
 
 function getClientIp(req) {
   const xff = req.headers.get('x-forwarded-for');
@@ -33,6 +17,16 @@ function getClientIp(req) {
 
 export async function POST(req) {
   try {
+    const ip = getClientIp(req);
+
+    const rateLimitResult = await checkRateLimit(generalRateLimiter, `waitlist:${ip}`);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { success: false, message: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
     let body;
     try {
       body = await req.json();
@@ -53,9 +47,7 @@ export async function POST(req) {
       );
     }
 
-    const adminDb = getAdminDb();
     const docId = createHash('sha256').update(email).digest('hex');
-    const ip = getClientIp(req);
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
     const docRef = adminDb.collection('waitlist').doc(docId);
@@ -77,7 +69,7 @@ export async function POST(req) {
         submissionCount: 1,
         ip,
         userAgent,
-        source: 'index-waitlist',
+        source: 'waitlist-modal',
       });
     }
 

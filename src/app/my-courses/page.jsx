@@ -1,11 +1,9 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { courseService } from "@/libs/courseService";
-import { paymentService } from "@/libs/paymentService";
-import { locationService } from "@/libs/locationService";
 import Link from "next/link";
 
 const MyCourses = () => {
@@ -25,11 +23,8 @@ const MyCourses = () => {
     const fetchCourses = async () => {
       if (user) {
         try {
-          console.log("Fetching courses for user:", user.id);
-
           // Fetch all courses first
           const allAvailableCourses = await courseService.getAllCourses();
-          console.log("All courses fetched:", allAvailableCourses);
 
           if (!Array.isArray(allAvailableCourses)) {
             throw new Error("Invalid response from getAllCourses");
@@ -45,7 +40,6 @@ const MyCourses = () => {
 
           // Then fetch user's enrolled courses
           const userCourses = await courseService.getUserCourses(user.id);
-          console.log("User courses fetched:", userCourses);
 
           if (
             userCourses &&
@@ -108,129 +102,12 @@ const MyCourses = () => {
     fetchCourses();
   }, [user]);
 
-  // Inside the MyCourses component
-  const waitForRazorpay = (maxAttempts = 10, interval = 1000) => {
-    return new Promise((resolve, reject) => {
-      let attempts = 0;
-
-      const check = () => {
-        attempts++;
-        if (typeof window.Razorpay !== "undefined") {
-          resolve(window.Razorpay);
-        } else if (attempts === maxAttempts) {
-          reject(new Error("Razorpay SDK failed to load"));
-        } else {
-          setTimeout(check, interval);
-        }
-      };
-
-      check();
-    });
-  };
-
-  const handleEnroll = async (courseId) => {
+  const handleEnroll = (courseId) => {
     if (!user) {
-      console.log("Enroll button clicked, dispatching open-signup-modal event");
       window.dispatchEvent(new CustomEvent("open-signup-modal"));
       return;
     }
-
-    try {
-      const course = allCourses.find((c) => c.id === courseId);
-      if (!course) throw new Error("Course not found");
-
-      // Detect user location for pricing using centralized service
-      let isIndianUser = true; // Default to Indian pricing
-      try {
-        isIndianUser = await locationService.detectUserLocation();
-      } catch (locationError) {
-        console.warn("Could not detect location, using Indian pricing");
-      }
-
-      // Get dynamic pricing for the course
-      const paymentAmount = await courseService.getCoursePaymentAmount(
-        courseId,
-        isIndianUser
-      );
-
-      // Create payment record
-      await paymentService.createPayment(user.id, courseId, paymentAmount);
-
-      const response = await fetch("/api/create-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: paymentAmount, courseId }),
-      });
-
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Payment initialization failed");
-
-      // Load Razorpay script dynamically
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-
-      await new Promise((resolve, reject) => {
-        script.onload = resolve;
-        script.onerror = reject;
-        document.body.appendChild(script);
-      });
-
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: paymentAmount * 100,
-        currency: "INR",
-        name: "FroggoCodes",
-        description: `${course.title} Course Purchase`,
-        order_id: data.orderId,
-        handler: async (response) => {
-          try {
-            await paymentService.updatePaymentStatus(
-              user.id,
-              courseId,
-              response.razorpay_payment_id,
-              "completed"
-            );
-
-            await courseService.updateLastAccessed(user.id, courseId, {
-              user_id: user.id,
-              course_id: courseId,
-              last_accessed: new Date().toISOString(),
-              courses: {
-                title: course.title,
-                description: course.description,
-                thumbnail: course.thumbnail,
-              },
-            });
-
-            window.location.reload();
-          } catch (error) {
-            console.error("Error in payment handler:", error);
-            alert(
-              "Payment successful but enrollment failed. Please contact support."
-            );
-          }
-        },
-        prefill: {
-          email: user.email,
-        },
-        modal: {
-          ondismiss: function () {
-            console.log("Payment modal closed");
-          },
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response) {
-        console.error("Payment failed:", response.error);
-        alert(response.error.description);
-      });
-      rzp.open();
-    } catch (error) {
-      console.error("Error in handleEnroll:", error);
-      alert(error.message || "Failed to process payment. Please try again.");
-    }
+    router.push(`/process-enrollment?courseId=${courseId}`);
   };
 
   if (loading || isLoading) {

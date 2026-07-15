@@ -32,9 +32,6 @@ const Hero = () => {
     if (user) {
       router.push("/my-courses");
     } else {
-      console.log(
-        "Hero button clicked, dispatching open-signin-modal event with signup form"
-      );
       window.dispatchEvent(
         new CustomEvent("open-signin-modal", {
           detail: { startWithSignUp: true },

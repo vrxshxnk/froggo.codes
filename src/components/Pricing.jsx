@@ -225,12 +225,9 @@ const Pricing = () => {
     return () => clearInterval(interval);
   }, [allCourses.length]);
 
-  // Check for pending enrollment to avoid payment conflicts
+  // Clear any pending enrollment once user is signed in
   useEffect(() => {
-    const pendingEnrollment = sessionStorage.getItem("pendingCourseEnrollment");
-    if (pendingEnrollment && user) {
-      // Clear any pending enrollment since user is now signed in
-      console.log("Clearing pending enrollment - user is signed in");
+    if (sessionStorage.getItem("pendingCourseEnrollment") && user) {
       sessionStorage.removeItem("pendingCourseEnrollment");
     }
   }, [user]);
@@ -245,16 +242,12 @@ const Pricing = () => {
       if (!currentCourse) return;
       
       // Store the selected course for after sign-in
-      console.log("Storing course for post-signin enrollment:", currentCourse.id);
       sessionStorage.setItem("pendingCourseEnrollment", JSON.stringify({
         courseId: currentCourse.id,
         courseTitle: currentCourse.title,
         timestamp: Date.now()
       }));
       
-      console.log(
-        "Pricing button clicked, dispatching open-signin-modal event"
-      );
       window.dispatchEvent(
         new CustomEvent("open-signin-modal", {
           detail: { startWithSignUp: true },

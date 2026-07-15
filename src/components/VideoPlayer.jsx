@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { courseService } from "@/libs/courseService";
 import { bunnyUtils } from "@/utils/bunnyUtils";
-import config from "@/config";
+import { auth } from "@/libs/firebase";
 
 const VideoPlayer = ({
   isOpen,
@@ -18,50 +17,109 @@ const VideoPlayer = ({
   const [hasAccess, setHasAccess] = useState(false);
   const [error, setError] = useState(null);
   const [player, setPlayer] = useState(null);
+  const [signedUrl, setSignedUrl] = useState(null);
   const iframeRef = useRef(null);
+  const lastPositionSaveRef = useRef(0);
 
-  // Verify access when component mounts or video changes
+  /**
+   * Fetch signed video URL from secure API
+   * This verifies access server-side and returns a time-limited signed URL.
+   * Preview videos don't require sign-in; everything else does.
+   */
+  const fetchSignedVideoUrl = useCallback(async () => {
+    if (!video?.bunny_video_id) {
+      throw new Error(
+        "This video isn't linked to a Bunny video yet. Please contact support."
+      );
+    }
+
+    if (!user && !video.is_preview) {
+      throw new Error("Please log in to access this video");
+    }
+
+    try {
+      // Attach the user's ID token when available (required for paid videos)
+      const idToken = await auth.currentUser?.getIdToken();
+
+      const response = await fetch("/api/get-video-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+        },
+        body: JSON.stringify({
+          videoId: video.bunny_video_id,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+
+        if (response.status === 401) {
+          throw new Error("Please log in to access this video");
+        } else if (response.status === 403) {
+          throw new Error("You don't have access to this video. Please purchase the course first.");
+        } else if (response.status === 429) {
+          throw new Error("Too many requests. Please wait a moment and try again.");
+        }
+
+        throw new Error(errorData.error || "Failed to load video");
+      }
+
+      const data = await response.json();
+
+      // Resume where the viewer left off (skip if barely started or completed)
+      if (video.position > 30 && !video.completed) {
+        return `${data.url}&t=${Math.floor(video.position)}`;
+      }
+
+      return data.url;
+
+    } catch (err) {
+      console.error("Error fetching signed video URL:", err);
+      throw err;
+    }
+  }, [user, video]);
+
+  // Verify access and fetch signed URL when component mounts or video changes
   useEffect(() => {
-    const verifyAccess = async () => {
-      if (!isOpen || !user || !video || !courseId) {
+    const loadVideo = async () => {
+      if (!isOpen || !video || (!user && !video.is_preview)) {
         setIsLoading(false);
         return;
       }
 
       setIsLoading(true);
       setError(null);
+      setSignedUrl(null);
 
       try {
-        // Verify user has purchased the course
-        const accessGranted = await courseService.verifyUserCourseAccess(
-          user.id,
-          courseId
-        );
+        // Fetch signed URL from secure API (this also verifies access server-side)
+        const url = await fetchSignedVideoUrl();
 
-        if (!accessGranted) {
-          setError(
-            "You don't have access to this video. Please purchase the course first."
-          );
-          setHasAccess(false);
-        } else {
+        if (url) {
+          setSignedUrl(url);
           setHasAccess(true);
+        } else {
+          setError("Unable to load video. Please try again.");
+          setHasAccess(false);
         }
       } catch (err) {
-        console.error("Error verifying video access:", err);
-        setError("Failed to verify video access. Please try again.");
+        console.error("Error loading video:", err);
+        setError(err.message || "Failed to load video. Please try again.");
         setHasAccess(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    verifyAccess();
-  }, [isOpen, user, video, courseId]);
+    loadVideo();
+  }, [isOpen, user, video, courseId, fetchSignedVideoUrl]);
 
   // Initialize Player.js when video is ready to play
   useEffect(() => {
     const initializePlayer = async () => {
-      if (!hasAccess || !iframeRef.current || player) return;
+      if (!hasAccess || !signedUrl || !iframeRef.current || player) return;
 
       try {
         // Load Player.js library
@@ -71,35 +129,28 @@ const VideoPlayer = ({
         const playerInstance = new playerjs.Player(iframeRef.current);
 
         // Set up event listeners
-        playerInstance.on("ready", () => {
-          console.log("Video player ready");
-        });
+        playerInstance.on("ready", () => {});
 
-        playerInstance.on("play", () => {
-          console.log("Video started playing");
-        });
+        playerInstance.on("play", () => {});
 
-        playerInstance.on("pause", () => {
-          console.log("Video paused");
-        });
+        playerInstance.on("pause", () => {});
 
         playerInstance.on("timeupdate", (data) => {
           try {
-            const timingData = JSON.parse(data);
+            const timingData = typeof data === "string" ? JSON.parse(data) : data;
             const { seconds, duration } = timingData;
 
-            // Calculate progress percentage
-            const progressPercentage = (seconds / duration) * 100;
+            if (!duration) return;
 
-            // Update progress every 10% milestone to avoid too frequent updates
-            const milestone = Math.floor(progressPercentage / 10) * 10;
-
-            // Call progress update callback if provided
-            if (onProgressUpdate && milestone > 0) {
+            // Save the playback position at most every 15 seconds so the
+            // viewer can resume later without spamming Firestore writes
+            const now = Date.now();
+            if (onProgressUpdate && now - lastPositionSaveRef.current > 15000) {
+              lastPositionSaveRef.current = now;
               onProgressUpdate(video.id, {
                 currentTime: seconds,
                 duration: duration,
-                progressPercentage: progressPercentage,
+                progressPercentage: (seconds / duration) * 100,
               });
             }
           } catch (err) {
@@ -108,7 +159,6 @@ const VideoPlayer = ({
         });
 
         playerInstance.on("ended", () => {
-          console.log("Video ended");
           // Mark video as completed
           if (onProgressUpdate) {
             onProgressUpdate(video.id, {
@@ -143,41 +193,16 @@ const VideoPlayer = ({
         }
       }
     };
-  }, [hasAccess, video, onProgressUpdate, player]);
+  }, [hasAccess, signedUrl, video, onProgressUpdate, player]);
 
-  // Generate video embed URL
-  const getEmbedUrl = () => {
-    if (!video || !courseId) {
-      return null;
+  // Reset player when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setPlayer(null);
+      setSignedUrl(null);
+      setHasAccess(false);
     }
-
-    // Use single library ID from config
-    const libraryId = config.bunny.libraryId;
-
-    if (!libraryId) {
-      console.error("No Bunny library ID configured");
-      return null;
-    }
-
-    // Generate collection-based video ID: courseId/VideoN
-    let videoId;
-    if (video.bunny_video_id) {
-      // Use existing bunny_video_id if available
-      videoId = video.bunny_video_id;
-    } else if (video.order) {
-      // Generate collection-based ID from video order
-      videoId = bunnyUtils.generateCollectionVideoId(courseId, video.order);
-    } else {
-      console.error("No video ID or order found for video:", video);
-      return null;
-    }
-
-    return bunnyUtils.generateEmbedUrl(libraryId, videoId, {
-      autoplay: false,
-      preload: true,
-      muted: false,
-    });
-  };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -214,7 +239,10 @@ const VideoPlayer = ({
         <div className="mb-4">
           {isLoading ? (
             <div className="flex items-center justify-center h-64 bg-neutral-700 rounded-lg">
-              <div className="text-white">Loading video...</div>
+              <div className="text-center">
+                <div className="animate-spin h-8 w-8 border-2 border-emerald-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                <div className="text-white">Loading video...</div>
+              </div>
             </div>
           ) : error ? (
             <div className="flex items-center justify-center h-64 bg-neutral-700 rounded-lg">
@@ -228,11 +256,11 @@ const VideoPlayer = ({
                 </button>
               </div>
             </div>
-          ) : hasAccess && getEmbedUrl() ? (
+          ) : hasAccess && signedUrl ? (
             <div className="relative" style={{ paddingTop: "56.25%" }}>
               <iframe
                 ref={iframeRef}
-                src={getEmbedUrl()}
+                src={signedUrl}
                 className="absolute top-0 left-0 w-full h-full rounded-lg"
                 frameBorder="0"
                 allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"

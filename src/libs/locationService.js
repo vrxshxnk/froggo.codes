@@ -70,9 +70,7 @@ export const locationService = {
     // Try each method in sequence
     for (const method of methods) {
       try {
-        console.log('Trying location detection method...');
         const result = await method();
-        console.log('Location detection successful:', result ? 'India' : 'International');
         return result;
       } catch (error) {
         console.warn('Location detection method failed:', error.message);

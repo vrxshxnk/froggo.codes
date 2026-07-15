@@ -11,9 +11,11 @@
   "dependencies": {
     "@firebase/analytics": "^0.10.11",
     "@firebase/auth": "^1.8.2",
+    "@upstash/ratelimit": "^2.0.7",
+    "@upstash/redis": "^1.36.1",
     "dotenv": "^16.5.0",
     "firebase": "^11.2.0",
-    "firebase-admin": "^13.0.2",
+    "firebase-admin": "^13.6.0",
     "gray-matter": "^4.0.3",
     "next": "^15.5.18",
     "razorpay": "^2.9.5",

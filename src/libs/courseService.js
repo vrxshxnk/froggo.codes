@@ -86,7 +86,6 @@ export const courseService = {
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
-        console.log("No enrolled courses found for user");
         return [];
       }
 
@@ -252,6 +251,7 @@ export const courseService = {
         videos: snapshot.docs.map((doc) => ({
           video_id: doc.data().video_id,
           completed: doc.data().completed || false,
+          position: doc.data().position || 0,
           last_watched: doc.data().last_watched,
         })),
       };
@@ -302,20 +302,30 @@ export const courseService = {
     }
   },
 
-  async updateVideoProgress(userId, videoId, courseId, completed) {
+  /**
+   * Update a video's progress record.
+   * @param {boolean|null} completed - Pass null to leave completion untouched
+   *   (e.g. when only saving the playback position)
+   * @param {number} [position] - Playback position in seconds, for resume
+   */
+  async updateVideoProgress(userId, videoId, courseId, completed, position) {
     try {
       const progressRef = doc(db, "user_progress", `${userId}_${videoId}`);
-      await setDoc(
-        progressRef,
-        {
-          user_id: userId,
-          video_id: videoId,
-          course_id: courseId,
-          completed,
-          last_watched: new Date().toISOString(),
-        },
-        { merge: true }
-      );
+      const update = {
+        user_id: userId,
+        video_id: videoId,
+        course_id: courseId,
+        last_watched: new Date().toISOString(),
+      };
+
+      if (typeof completed === "boolean") {
+        update.completed = completed;
+      }
+      if (typeof position === "number" && Number.isFinite(position)) {
+        update.position = Math.max(0, Math.floor(position));
+      }
+
+      await setDoc(progressRef, update, { merge: true });
     } catch (error) {
       console.error("Error updating video progress:", error);
       throw error;
@@ -340,7 +350,6 @@ export const courseService = {
       const userCourseDoc = await getDoc(userCourseRef);
 
       if (!userCourseDoc.exists()) {
-        console.log("User has not enrolled in this course");
         return false;
       }
 
@@ -349,13 +358,11 @@ export const courseService = {
       const paymentDoc = await getDoc(paymentRef);
 
       if (!paymentDoc.exists()) {
-        console.log("No payment record found for this course");
         return false;
       }
 
       const paymentData = paymentDoc.data();
       if (paymentData.status !== "completed") {
-        console.log("Payment not completed for this course");
         return false;
       }
 

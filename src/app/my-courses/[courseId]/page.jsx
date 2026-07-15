@@ -37,21 +37,20 @@ const CourseDetail = ({ params }) => {
             courseId
           );
 
-          // Create a progress map for easier access
+          // Create progress maps for easier access
           const progressMap = {};
+          const positionMap = {};
           courseProgress.videos.forEach((p) => {
             progressMap[p.video_id] = p.completed;
+            positionMap[p.video_id] = p.position || 0;
           });
 
           setCourse({
             ...courseDetails,
-            videos: courseDetails.videos.map((video, index) => ({
+            videos: courseDetails.videos.map((video) => ({
               ...video,
               completed: progressMap[video.id] || false,
-              // Add collection-based bunny_video_id if not present
-              bunny_video_id:
-                video.bunny_video_id ||
-                `${courseId}/Video${video.order || index + 1}`,
+              position: positionMap[video.id] || 0,
             })),
           });
           setProgress(progressMap);
@@ -115,6 +114,31 @@ const CourseDetail = ({ params }) => {
 
   const handleVideoProgressUpdate = async (videoId, progressData) => {
     try {
+      // Periodic position save (throttled by the player) — enables resume
+      if (!progressData.completed && progressData.currentTime != null) {
+        await courseService.updateVideoProgress(
+          user.id,
+          videoId,
+          courseId,
+          null,
+          progressData.currentTime
+        );
+
+        setCourse((prev) =>
+          prev
+            ? {
+                ...prev,
+                videos: prev.videos.map((video) =>
+                  video.id === videoId
+                    ? { ...video, position: progressData.currentTime }
+                    : video
+                ),
+              }
+            : prev
+        );
+        return;
+      }
+
       // Update progress in database if video is completed
       if (progressData.completed) {
         await courseService.updateVideoProgress(
@@ -209,6 +233,14 @@ const CourseDetail = ({ params }) => {
                 style={{ width: `${calculateProgress()}%` }}
               ></div>
             </div>
+            {calculateProgress() === 100 && (
+              <Link
+                href={`/my-courses/${courseId}/certificate`}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 transition-colors"
+              >
+                🎓 View Your Certificate
+              </Link>
+            )}
           </div>
 
           <div className="space-y-4">

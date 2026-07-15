@@ -1,13 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import SignInModal from "./auth/SignInModal";
 
 const links = [
+  {
+    href: "/dsa",
+    label: "DSA",
+    isFullPath: true,
+  },
+  {
+    href: "/development",
+    label: "Development",
+    isFullPath: true,
+  },
   {
     href: "about",
     label: "About",
@@ -32,31 +42,23 @@ const links = [
 ];
 
 const Header = () => {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [startWithSignUp, setStartWithSignUp] = useState(false);
   const { user, signOut } = useAuth();
 
   useEffect(() => {
     if (searchParams.get("signin") === "true") {
-      setStartWithSignUp(false);
       setIsAuthModalOpen(true);
     }
 
-    // Modified event listener to check for startWithSignUp detail
-    const handleOpenModal = (event) => {
-      console.log("Header received open-signin-modal event", event.detail);
-      // Check if the event has a detail property indicating to start with sign-up
-      setStartWithSignUp(event.detail?.startWithSignUp === true);
+    const handleOpenModal = () => {
       setIsAuthModalOpen(true);
     };
 
-    // Add event listener for sign up modal event
     const handleOpenSignUpModal = () => {
-      console.log("Header received open-signup-modal event");
-      setStartWithSignUp(true);
       setIsAuthModalOpen(true);
     };
 
@@ -103,6 +105,13 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const isHome = pathname === "/";
+
+  // On the homepage, anchor links smooth-scroll in place. On any other page
+  // they navigate to /#section instead, so they never silently do nothing.
+  const getLinkHref = (link) =>
+    link.isFullPath ? link.href : isHome ? `#${link.href}` : `/#${link.href}`;
+
   const handleScroll = (e, href) => {
     e.preventDefault();
     const element = document.getElementById(href);
@@ -116,7 +125,6 @@ const Header = () => {
     if (user) {
       signOut();
     } else {
-      setStartWithSignUp(false);
       setIsAuthModalOpen(true);
     }
   };
@@ -135,10 +143,7 @@ const Header = () => {
   ) : (
     <div className="flex gap-2">
       <button
-        onClick={() => {
-          setStartWithSignUp(false);
-          setIsAuthModalOpen(true);
-        }}
+        onClick={() => setIsAuthModalOpen(true)}
         className={`btn ${
           isScrolled
             ? "bg-emerald-600 hover:bg-emerald-700 text-white text-sm py-1 px-2 rounded-md"
@@ -167,16 +172,14 @@ const Header = () => {
           } shadow-none`}
         >
           <nav
-            className={`container flex items-center justify-between px-${
-              isScrolled ? "6" : "6"
-            } py-${
-              isScrolled ? "0" : "2"
+            className={`container flex items-center justify-between gap-4 px-6 ${
+              isScrolled ? "py-0" : "py-2"
             } mx-auto max-w-full lg:max-w-[90%] transition-all duration-300 ease-in-out ${
               isScrolled ? "rounded-lg shadow-lg" : "rounded-none"
             } shadow-none`}
             aria-label="Global"
           >
-            <div className="flex lg:flex-1">
+            <div className="flex shrink-0">
               <Link
                 className="flex items-center gap-2 shrink-0 text-white"
                 href="/"
@@ -223,26 +226,28 @@ const Header = () => {
                 </svg>
               </button>
             </div>
-            <div className="hidden lg:flex lg:justify-center lg:gap-10 lg:items-center">
+            <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-center lg:gap-5 xl:gap-8">
               {navigationLinks.map((link) => (
-                <a
-                  href={link.isFullPath ? link.href : `#${link.href}`}
+                <Link
+                  href={getLinkHref(link)}
                   key={link.href}
                   onClick={(e) =>
-                    !link.isFullPath && handleScroll(e, link.href)
+                    !link.isFullPath && isHome && handleScroll(e, link.href)
                   }
                   className={`${
                     link.isCourseLink
                       ? "text-white hover:text-white hover:underline"
                       : "text-white hover:underline"
-                  } cursor-pointer`}
+                  } cursor-pointer whitespace-nowrap text-sm xl:text-base`}
                   title={link.label}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
-            <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
+            <div className="hidden lg:flex lg:shrink-0 lg:justify-end">
+              {cta}
+            </div>
           </nav>
 
           {/* Mobile menu */}
@@ -296,12 +301,16 @@ const Header = () => {
                   {/* // In the mobile menu section */}
                   <div className="flex flex-col gap-y-4 items-center text-white w-full">
                     {navigationLinks.map((link) => (
-                      <a
-                        href={link.isFullPath ? link.href : `#${link.href}`}
+                      <Link
+                        href={getLinkHref(link)}
                         key={link.href}
-                        onClick={(e) =>
-                          !link.isFullPath && handleScroll(e, link.href)
-                        }
+                        onClick={(e) => {
+                          if (!link.isFullPath && isHome) {
+                            handleScroll(e, link.href);
+                          } else {
+                            setIsOpen(false);
+                          }
+                        }}
                         className={`${
                           link.isCourseLink
                             ? "text-emerald-400 font-semibold hover:text-emerald-300"
@@ -310,7 +319,7 @@ const Header = () => {
                         title={link.label}
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -325,10 +334,7 @@ const Header = () => {
                     </button>
                   ) : (
                     <button
-                      onClick={() => {
-                        setStartWithSignUp(false);
-                        setIsAuthModalOpen(true);
-                      }}
+                      onClick={() => setIsAuthModalOpen(true)}
                       className="w-full max-w-[200px] mx-auto bg-emerald-600 hover:bg-emerald-700 text-white text-md py-2 px-4 rounded-md transition-all duration-300 ease-in-out"
                     >
                       Sign In
@@ -343,7 +349,6 @@ const Header = () => {
       <SignInModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        startWithSignUp={startWithSignUp}
       />
     </>
   );

@@ -37,27 +37,59 @@ service cloud.firestore {
       allow write: if isAdmin();
       allow delete: if isAdmin();
     }
+
+    // Free roadmap content - public read, admin controlled
+    match /roadmaps/{roadmapId} {
+      allow read: if true;
+      allow write: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Free roadmap progress - owned by each signed-in user
+    match /roadmap_progress/{progressId} {
+      allow get: if isAuthenticated() &&
+                    (progressId.matches(request.auth.uid + '_.*') || isAdmin());
+
+      // List queries must be filtered to the caller's own documents —
+      // Firestore proves this from the query's where('user_id','==',uid)
+      allow list: if isAuthenticated() &&
+                     (resource.data.user_id == request.auth.uid || isAdmin());
+
+      allow create: if isAuthenticated() &&
+                       request.resource.data.user_id == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['user_id', 'roadmap_id', 'completed']) &&
+                       request.resource.data.user_id is string &&
+                       request.resource.data.roadmap_id is string &&
+                       request.resource.data.completed is map;
+
+      allow update: if isAuthenticated() &&
+                       resource.data.user_id == request.auth.uid &&
+                       request.resource.data.user_id == request.auth.uid &&
+                       request.resource.data.roadmap_id == resource.data.roadmap_id &&
+                       request.resource.data.completed is map;
+
+      allow delete: if isAdmin();
+    }
     
     // Videos collection - STRICT ACCESS CONTROL
     match /videos/{videoId} {
-      // Only allow reading video metadata if user owns the course or is admin
-      allow read: if isAdmin() || 
-                     (isAuthenticated() && 
+      // Video metadata is readable by course owners, admins, and — for
+      // free-preview lessons — anyone
+      allow read: if resource.data.is_preview == true ||
+                     isAdmin() ||
+                     (isAuthenticated() &&
                       exists(/databases/$(database)/documents/user_courses/$(request.auth.uid + '_' + resource.data.course_id)));
       allow write: if isAdmin();
       allow delete: if isAdmin();
     }
-    
+
     // User courses collection - STRICT OWNERSHIP
     match /user_courses/{userCourseId} {
-      // Only allow reading your own enrollment records
-      allow read: if isAuthenticated() && 
+      // Covers get and list; lists must be filtered to the caller's own
+      // documents (where('user_id','==',uid)) for Firestore to prove this
+      allow read: if isAuthenticated() &&
                      (resource.data.user_id == request.auth.uid || isAdmin());
-      
-      // Only allow listing with proper user_id filter (enforced by document structure)
-      allow list: if isAuthenticated() && 
-                     request.query.where('user_id', '==', request.auth.uid) != null;
-      
+
       // Allow create only if creating for yourself with valid data
       allow create: if isAuthenticated() && 
                        request.resource.data.user_id == request.auth.uid &&
@@ -75,14 +107,10 @@ service cloud.firestore {
     
     // User progress collection - STRICT OWNERSHIP
     match /user_progress/{progressId} {
-      // Only allow reading your own progress
-      allow read: if isAuthenticated() && 
+      // Covers get and list (lists must filter on the caller's user_id)
+      allow read: if isAuthenticated() &&
                      (resource.data.user_id == request.auth.uid || isAdmin());
-      
-      // Only allow listing with proper user_id filter
-      allow list: if isAuthenticated() && 
-                     request.query.where('user_id', '==', request.auth.uid) != null;
-      
+
       // Allow create only if creating for yourself with valid data
       allow create: if isAuthenticated() && 
                        request.resource.data.user_id == request.auth.uid &&
@@ -100,30 +128,22 @@ service cloud.firestore {
     
     // Payments collection - ULTRA STRICT
     match /payments/{paymentId} {
-      // Only allow reading your own payments
-      allow read: if isAuthenticated() && 
+      // Covers get and list (lists must filter on the caller's user_id)
+      allow read: if isAuthenticated() &&
                      (resource.data.user_id == request.auth.uid || isAdmin());
-      
-      // Only allow listing with proper user_id filter
-      allow list: if isAuthenticated() && 
-                     request.query.where('user_id', '==', request.auth.uid) != null;
-      
-      // Allow create only with strict validation
-      allow create: if isAuthenticated() && 
+
+      // Allow create only with status='pending' — completed/failed set server-side only
+      allow create: if isAuthenticated() &&
                        request.resource.data.user_id == request.auth.uid &&
                        request.resource.data.keys().hasAll(['user_id', 'course_id', 'amount', 'status']) &&
                        request.resource.data.user_id is string &&
                        request.resource.data.course_id is string &&
                        request.resource.data.amount is number &&
                        request.resource.data.amount > 0 &&
-                       request.resource.data.status in ['pending', 'completed', 'failed'];
-      
-      // Allow update only for status changes and only if you own it
-      allow update: if isAuthenticated() && 
-                       resource.data.user_id == request.auth.uid &&
-                       request.resource.data.user_id == resource.data.user_id && // No user_id changes
-                       request.resource.data.course_id == resource.data.course_id && // No course_id changes
-                       request.resource.data.amount == resource.data.amount; // No amount changes
+                       request.resource.data.status == 'pending';
+
+      // Clients cannot change payment status — that is handled server-side via Admin SDK
+      allow update: if false;
       
       allow delete: if false; // Never allow payment deletion via client
     }
