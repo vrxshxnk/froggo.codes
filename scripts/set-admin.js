@@ -7,7 +7,7 @@
 //
 // After running, the user must sign out and back in (or wait up to an hour)
 // for the refreshed token to carry the claim.
-require("dotenv").config({ path: ".env.local" });
+require("dotenv").config({ path: [".env.local", ".env"] });
 
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
