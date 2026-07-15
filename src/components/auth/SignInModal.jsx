@@ -1,13 +1,52 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { auth, db } from "@/libs/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { locationService } from "@/libs/locationService";
 
 const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // In consent-required jurisdictions (EU/UK/EEA/CH) the newsletter is an
+  // explicit unchecked opt-in; everywhere else it's implied via the notice
+  const [needsConsent, setNeedsConsent] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
 
   const { signInWithGoogle } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    locationService
+      .requiresMarketingConsent()
+      .then(setNeedsConsent)
+      .catch(() => setNeedsConsent(true));
+  }, [isOpen]);
+
+  // Record the newsletter preference on the user doc, but only the first
+  // time — a later plain sign-in must not overwrite an existing choice
+  const recordNewsletterPreference = async () => {
+    try {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+
+      const userRef = doc(db, "users", uid);
+      const snapshot = await getDoc(userRef);
+      if (snapshot.exists() && snapshot.data().newsletter !== undefined) return;
+
+      await setDoc(
+        userRef,
+        {
+          newsletter: needsConsent ? newsletterOptIn : true,
+          newsletter_updated_at: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn("Could not save newsletter preference:", err.message);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -30,8 +69,9 @@ const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
 
     try {
       await signInWithGoogle();
+      await recordNewsletterPreference();
       onClose();
-      
+
       // Check if user was trying to enroll in a course before signing in
       const pendingEnrollment = sessionStorage.getItem("pendingCourseEnrollment");
       
@@ -143,11 +183,33 @@ const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
             {loading ? "Signing in..." : "Continue with Google"}
           </button>
 
-          <div className="text-center text-sm text-gray-400">
-            By continuing, you agree to our Terms of Service and Privacy
-            Policy, and to receive FroggoCodes updates and newsletters. You can
-            unsubscribe anytime.
-          </div>
+          {needsConsent ? (
+            <>
+              <label className="flex items-start gap-2.5 text-left text-sm text-gray-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newsletterOptIn}
+                  onChange={(e) => setNewsletterOptIn(e.target.checked)}
+                  className="mt-1 accent-emerald-500"
+                />
+                <span>
+                  Send me the Froggo newsletter — practical insights on coding,
+                  AI, and shipping products, to stay on top of your field.
+                  (optional)
+                </span>
+              </label>
+              <div className="text-center text-sm text-gray-400">
+                By continuing, you agree to our Terms of Service and Privacy
+                Policy.
+              </div>
+            </>
+          ) : (
+            <div className="text-center text-sm text-gray-400">
+              By continuing, you agree to our Terms of Service and Privacy
+              Policy. You&apos;ll also get the Froggo newsletter — practical
+              insights to stay on top of your field. Unsubscribe anytime.
+            </div>
+          )}
         </div>
       </div>
     </div>

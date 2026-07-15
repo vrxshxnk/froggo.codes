@@ -23,6 +23,7 @@ const emptyCourse = {
   price_int: 499,
   discount: 50,
   highlight: false,
+  coming_soon: false,
   paddle_price_id: "",
 };
 
@@ -105,6 +106,7 @@ const CoursesAdmin = () => {
       price_int: course.price_int ?? 499,
       discount: course.discount ?? 50,
       highlight: Boolean(course.highlight),
+      coming_soon: Boolean(course.coming_soon),
       paddle_price_id: course.paddle_price_id || "",
     });
 
@@ -169,6 +171,7 @@ const CoursesAdmin = () => {
           price_int: Number(courseForm.price_int) || 0,
           discount: Number(courseForm.discount) || 0,
           highlight: Boolean(courseForm.highlight),
+          coming_soon: Boolean(courseForm.coming_soon),
           paddle_price_id: courseForm.paddle_price_id.trim(),
         },
         { merge: true }
@@ -323,6 +326,11 @@ const CoursesAdmin = () => {
                     on landing page
                   </span>
                 )}
+                {course.coming_soon && (
+                  <span className="rounded bg-amber-400/20 px-1.5 py-0.5 text-amber-300">
+                    coming soon
+                  </span>
+                )}
               </div>
             </button>
           ))}
@@ -428,14 +436,24 @@ const CoursesAdmin = () => {
             />
           </Field>
 
-          <label className="mt-4 flex items-center gap-3 text-sm font-bold text-white/70">
-            <input
-              type="checkbox"
-              checked={courseForm.highlight}
-              onChange={setCourseField("highlight")}
-            />
-            Show on landing page (highlight)
-          </label>
+          <div className="mt-4 flex flex-wrap gap-6">
+            <label className="flex items-center gap-3 text-sm font-bold text-white/70">
+              <input
+                type="checkbox"
+                checked={courseForm.highlight}
+                onChange={setCourseField("highlight")}
+              />
+              Show on landing page (highlight)
+            </label>
+            <label className="flex items-center gap-3 text-sm font-bold text-white/70">
+              <input
+                type="checkbox"
+                checked={courseForm.coming_soon}
+                onChange={setCourseField("coming_soon")}
+              />
+              Coming soon (hides price, shows tag, blocks purchase)
+            </label>
+          </div>
         </div>
 
         {/* Pricing-card features */}

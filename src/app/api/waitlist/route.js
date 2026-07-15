@@ -39,6 +39,7 @@ export async function POST(req) {
 
     const rawEmail = typeof body?.email === 'string' ? body.email : '';
     const email = rawEmail.trim().toLowerCase();
+    const newsletter = body?.newsletter === true;
 
     if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
       return NextResponse.json(
@@ -58,12 +59,15 @@ export async function POST(req) {
         {
           lastSeenAt: FieldValue.serverTimestamp(),
           submissionCount: FieldValue.increment(1),
+          // Never downgrade an existing subscription from a repeat signup
+          ...(newsletter ? { newsletter: true, newsletterUpdatedAt: FieldValue.serverTimestamp() } : {}),
         },
         { merge: true }
       );
     } else {
       await docRef.set({
         email,
+        newsletter,
         createdAt: FieldValue.serverTimestamp(),
         lastSeenAt: FieldValue.serverTimestamp(),
         submissionCount: 1,

@@ -80,6 +80,13 @@ export async function POST(req) {
       );
     }
 
+    if (charge.comingSoon) {
+      return NextResponse.json(
+        { error: "This course hasn't launched yet. Join the waitlist to hear first!" },
+        { status: 403 }
+      );
+    }
+
     const { amount } = charge;
 
     // 5. Create Razorpay order with the server-computed amount

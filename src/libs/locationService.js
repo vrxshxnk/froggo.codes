@@ -1,5 +1,15 @@
 let cachedLocation = null;
 let locationPromise = null;
+let cachedCountry;
+let countryPromise = null;
+
+// Countries where marketing consent must be an explicit opt-in
+// (EU 27 + UK + EEA + Switzerland)
+const CONSENT_REQUIRED_COUNTRIES = new Set([
+  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR',
+  'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK',
+  'SI', 'ES', 'SE', 'GB', 'IS', 'LI', 'NO', 'CH',
+]);
 
 export const locationService = {
   async detectUserLocation() {
@@ -83,9 +93,68 @@ export const locationService = {
     return true;
   },
 
+  /**
+   * Best-effort ISO country code detection. Returns null when unknown.
+   */
+  async getCountryCode() {
+    if (cachedCountry !== undefined) return cachedCountry;
+    if (countryPromise) return countryPromise;
+
+    countryPromise = (async () => {
+      const methods = [
+        async () => {
+          const response = await fetch('https://cloudflare.com/cdn-cgi/trace', {
+            timeout: 3000,
+          });
+          const text = await response.text();
+          const locationLine = text
+            .split('\n')
+            .find((line) => line.startsWith('loc='));
+          if (!locationLine) throw new Error('Cloudflare location not found');
+          return locationLine.split('=')[1].trim().toUpperCase();
+        },
+        async () => {
+          const response = await fetch('https://ip-api.com/json/?fields=countryCode', {
+            timeout: 5000,
+          });
+          const data = await response.json();
+          if (!data.countryCode) throw new Error('IP-API failed');
+          return data.countryCode.toUpperCase();
+        },
+      ];
+
+      for (const method of methods) {
+        try {
+          return await method();
+        } catch {
+          continue;
+        }
+      }
+      return null;
+    })();
+
+    const result = await countryPromise;
+    countryPromise = null;
+    cachedCountry = result;
+    return result;
+  },
+
+  /**
+   * Whether the visitor is in a jurisdiction (EU/UK/EEA/CH) where
+   * newsletter signup must be an explicit opt-in. Unknown locations are
+   * treated as consent-required to stay on the safe side.
+   */
+  async requiresMarketingConsent() {
+    const code = await this.getCountryCode();
+    if (!code) return true;
+    return CONSENT_REQUIRED_COUNTRIES.has(code);
+  },
+
   // Clear cache (useful for testing)
   clearCache() {
     cachedLocation = null;
     locationPromise = null;
+    cachedCountry = undefined;
+    countryPromise = null;
   }
 };

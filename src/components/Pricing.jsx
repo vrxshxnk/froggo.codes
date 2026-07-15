@@ -238,6 +238,14 @@ const Pricing = () => {
   };
 
   const handleButtonClick = async () => {
+    if (!currentCourse) return;
+
+    // Coming-soon courses can't be bought yet — collect interest instead
+    if (currentCourse.coming_soon) {
+      window.dispatchEvent(new CustomEvent("open-waitlist-modal"));
+      return;
+    }
+
     if (!user) {
       if (!currentCourse) return;
       
@@ -283,6 +291,7 @@ const Pricing = () => {
 
 
   const getButtonText = () => {
+    if (currentCourse?.coming_soon) return "Notify Me 🐸";
     if (!user) return "Enroll Now";
     if (isCheckingOwnership) return "Checking...";
     if (currentCourse && ownedCourses.has(currentCourse.id))
@@ -318,8 +327,16 @@ const Pricing = () => {
           {/* Pricing Card */}
           <div className="w-full max-w-md lg:max-w-lg relative flex-shrink-0">
             {/* Badge */}
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white font-bold py-1 px-6 rounded-full text-sm z-10">
-              {currentCourse && ownedCourses.has(currentCourse.id)
+            <div
+              className={`absolute -top-4 left-1/2 transform -translate-x-1/2 font-bold py-1 px-6 rounded-full text-sm z-10 ${
+                currentCourse?.coming_soon
+                  ? "bg-amber-500 text-neutral-900"
+                  : "bg-emerald-500 text-white"
+              }`}
+            >
+              {currentCourse?.coming_soon
+                ? "🥚 COMING SOON"
+                : currentCourse && ownedCourses.has(currentCourse.id)
                 ? "✓ OWNED"
                 : "LIMITED TIME OFFER"}
             </div>
@@ -360,21 +377,32 @@ const Pricing = () => {
 
                     {/* Price content with fixed height */}
                     <div className="h-24 flex items-center justify-center mb-8 transition-all duration-500">
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-baseline mb-1">
-                          <span className="text-5xl font-extrabold text-white">
-                            {courseData.pricing.discounted}
+                      {currentCourse?.coming_soon ? (
+                        <div className="flex flex-col items-center">
+                          <span className="text-4xl font-extrabold text-white/90">
+                            Hatching soon…
+                          </span>
+                          <span className="mt-2 text-sm text-white/50">
+                            Join the waitlist to hear first
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-2xl text-white/50 line-through">
-                            {courseData.pricing.regular}
-                          </span>
-                          <span className="bg-emerald-400/20 text-emerald-400 text-sm font-medium px-2 py-0.5 rounded">
-                            {courseData.pricing.percentage} OFF
-                          </span>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <div className="flex items-baseline mb-1">
+                            <span className="text-5xl font-extrabold text-white">
+                              {courseData.pricing.discounted}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-2xl text-white/50 line-through">
+                              {courseData.pricing.regular}
+                            </span>
+                            <span className="bg-emerald-400/20 text-emerald-400 text-sm font-medium px-2 py-0.5 rounded">
+                              {courseData.pricing.percentage} OFF
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </>
                 )}

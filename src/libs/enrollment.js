@@ -12,7 +12,7 @@ const DEFAULT_DISCOUNT = 50;
  * Compute the INR amount to charge for a course, server-side.
  * Never trusts a client-provided amount.
  * @param {string} courseId
- * @returns {Promise<{amount: number, title: string} | null>} null if course doesn't exist
+ * @returns {Promise<{amount: number, title: string, comingSoon: boolean} | null>} null if course doesn't exist
  */
 export async function getCourseChargeInr(courseId) {
     const courseDoc = await adminDb.collection("courses").doc(courseId).get();
@@ -29,7 +29,11 @@ export async function getCourseChargeInr(courseId) {
             ? Math.floor(basePrice - (basePrice * discount) / 100)
             : Math.floor(basePrice);
 
-    return { amount, title: data.title || courseId };
+    return {
+        amount,
+        title: data.title || courseId,
+        comingSoon: Boolean(data.coming_soon),
+    };
 }
 
 /**
