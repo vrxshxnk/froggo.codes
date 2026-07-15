@@ -193,9 +193,9 @@ const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
                   className="mt-1 accent-emerald-500"
                 />
                 <span>
-                  Send me the Froggo newsletter — practical insights on coding,
-                  AI, and shipping products, to stay on top of your field.
-                  (optional)
+                  Send me newsletters from Froggo and its creator — practical
+                  insights on coding, AI, and shipping products, to stay on
+                  top of your field. (optional)
                 </span>
               </label>
               <div className="text-center text-sm text-gray-400">
@@ -206,8 +206,9 @@ const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
           ) : (
             <div className="text-center text-sm text-gray-400">
               By continuing, you agree to our Terms of Service and Privacy
-              Policy. You&apos;ll also get the Froggo newsletter — practical
-              insights to stay on top of your field. Unsubscribe anytime.
+              Policy. You&apos;ll also get newsletters from Froggo and its
+              creator — practical insights to stay on top of your field.
+              Unsubscribe anytime.
             </div>
           )}
         </div>

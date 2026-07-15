@@ -222,9 +222,9 @@ const WaitlistModal = () => {
                         className="mt-0.5 accent-emerald-500"
                       />
                       <span>
-                        Also send me the Froggo newsletter — practical insights
-                        on coding, AI, and shipping products, to stay on top of
-                        your field. (optional)
+                        Also send me newsletters from Froggo and its creator —
+                        practical insights on coding, AI, and shipping
+                        products, to stay on top of your field. (optional)
                       </span>
                     </label>
                     <p className="mt-3 text-xs text-white/40">
@@ -233,9 +233,10 @@ const WaitlistModal = () => {
                   </>
                 ) : (
                   <p className="mt-3 text-xs text-white/40">
-                    You&apos;ll also get the Froggo newsletter — practical
-                    insights on coding, AI, and shipping products, to stay on
-                    top of your field. No spam, unsubscribe anytime.
+                    You&apos;ll also get newsletters from Froggo and its
+                    creator — practical insights on coding, AI, and shipping
+                    products, to stay on top of your field. No spam,
+                    unsubscribe anytime.
                   </p>
                 )}
                 <button
