@@ -179,7 +179,10 @@ const Header = () => {
             } shadow-none`}
             aria-label="Global"
           >
-            <div className="flex shrink-0">
+            {/* Left and right columns get equal flex shares (lg:flex-1) so the
+                middle links center on the true header midline, not the
+                leftover space after the wider logo */}
+            <div className="flex shrink-0 lg:flex-1">
               <Link
                 className="flex items-center gap-2 shrink-0 text-white"
                 href="/"
@@ -195,8 +198,8 @@ const Header = () => {
                 <span
                   className={`font-extrabold ${
                     isScrolled
-                      ? "text-xl md:text-2xl text-emerald-300"
-                      : "text-2xl md:text-3xl text-emerald-400"
+                      ? "text-xl md:text-2xl lg:text-xl text-emerald-300"
+                      : "text-2xl md:text-3xl lg:text-2xl text-emerald-400"
                   } transition-all duration-300 ease-in-out`}
                 >
                   FroggoCodes
@@ -226,7 +229,7 @@ const Header = () => {
                 </svg>
               </button>
             </div>
-            <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-center lg:gap-5 xl:gap-8">
+            <div className="hidden lg:flex lg:items-center lg:justify-center lg:gap-5 xl:gap-8">
               {navigationLinks.map((link) => (
                 <Link
                   href={getLinkHref(link)}
@@ -245,7 +248,7 @@ const Header = () => {
                 </Link>
               ))}
             </div>
-            <div className="hidden lg:flex lg:shrink-0 lg:justify-end">
+            <div className="hidden lg:flex lg:flex-1 lg:justify-end">
               {cta}
             </div>
           </nav>
