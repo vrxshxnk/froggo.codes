@@ -6,6 +6,7 @@
 // event "transaction.completed", secret in PADDLE_WEBHOOK_SECRET.
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { adminDb } from '@/libs/firebaseAdmin';
 import { grantCourseAccess } from '@/libs/enrollment';
 
 // Header format: "ts=1671552777;h1=abc123..."
@@ -63,6 +64,24 @@ export async function POST(req) {
         console.warn('Paddle webhook: transaction.completed without valid custom_data', {
           transactionId: transaction?.id,
         });
+        return NextResponse.json({ received: true });
+      }
+
+      // custom_data is set by the browser at checkout, so the course it names
+      // must match the price that was actually paid — otherwise a buyer could
+      // pay for the cheapest course and unlock any other
+      const courseDoc = await adminDb.collection('courses').doc(courseId).get();
+      const expectedPriceId = courseDoc.exists ? courseDoc.data().paddle_price_id : null;
+      const paidPriceIds = (transaction.items || []).map((item) => item.price?.id);
+
+      if (!expectedPriceId || !paidPriceIds.includes(expectedPriceId)) {
+        console.error('Paddle webhook: paid price does not match course', {
+          transactionId: transaction.id,
+          courseId,
+          expectedPriceId,
+          paidPriceIds,
+        });
+        // 2xx so Paddle doesn't retry a transaction we will never fulfil
         return NextResponse.json({ received: true });
       }
 

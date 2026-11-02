@@ -129,6 +129,11 @@ const ProcessEnrollmentContent = () => {
       });
 
       const data = await response.json();
+      if (data.alreadyOwned) {
+        sessionStorage.removeItem("pendingCourseEnrollment");
+        router.push(`/my-courses/${courseData.id}`);
+        return;
+      }
       if (!response.ok) {
         throw new Error(data.error || "Payment initialization failed");
       }

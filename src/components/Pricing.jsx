@@ -240,6 +240,12 @@ const Pricing = () => {
   const handleButtonClick = async () => {
     if (!currentCourse) return;
 
+    // Existing buyers always go straight to their course
+    if (ownedCourses.has(currentCourse.id)) {
+      router.push(`/my-courses/${currentCourse.id}`);
+      return;
+    }
+
     // Coming-soon courses can't be bought yet — collect interest instead
     if (currentCourse.coming_soon) {
       window.dispatchEvent(new CustomEvent("open-waitlist-modal"));
@@ -291,11 +297,11 @@ const Pricing = () => {
 
 
   const getButtonText = () => {
+    if (currentCourse && ownedCourses.has(currentCourse.id))
+      return "Go To Course";
     if (currentCourse?.coming_soon) return "Notify Me 🐸";
     if (!user) return "Enroll Now";
     if (isCheckingOwnership) return "Checking...";
-    if (currentCourse && ownedCourses.has(currentCourse.id))
-      return "Go To Course";
     return "Enroll Now";
   };
 

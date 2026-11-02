@@ -87,6 +87,18 @@ export async function POST(req) {
       );
     }
 
+    // Never start a new order over a completed purchase — overwriting the
+    // record with "pending" would revoke the buyer's access
+    const paymentRef = adminDb.collection('payments').doc(`${userId}_${courseId}`);
+    const existingPayment = await paymentRef.get();
+
+    if (existingPayment.exists && existingPayment.data().status === 'completed') {
+      return NextResponse.json(
+        { error: 'You already own this course.', alreadyOwned: true },
+        { status: 409 }
+      );
+    }
+
     const { amount } = charge;
 
     // 5. Create Razorpay order with the server-computed amount
@@ -106,7 +118,7 @@ export async function POST(req) {
     // 6. Record the pending payment server-side so verify-payment can
     // match the order id and amount (clients can no longer forge these)
     const now = new Date().toISOString();
-    await adminDb.collection('payments').doc(`${userId}_${courseId}`).set({
+    await paymentRef.set({
       user_id: userId,
       course_id: courseId,
       provider: 'razorpay',

@@ -90,18 +90,16 @@ service cloud.firestore {
       allow read: if isAuthenticated() &&
                      (resource.data.user_id == request.auth.uid || isAdmin());
 
-      // Allow create only if creating for yourself with valid data
-      allow create: if isAuthenticated() && 
-                       request.resource.data.user_id == request.auth.uid &&
-                       request.resource.data.keys().hasAll(['user_id', 'course_id', 'last_accessed']) &&
-                       request.resource.data.user_id is string &&
-                       request.resource.data.course_id is string;
-      
-      // Allow update only if you own the document
-      allow update: if isAuthenticated() && 
+      // Enrollments are created server-side only, after a verified payment
+      allow create: if false;
+
+      // Owners may update display metadata (last_accessed, course title) but
+      // never which user or course the enrollment is for
+      allow update: if isAuthenticated() &&
                        resource.data.user_id == request.auth.uid &&
-                       request.resource.data.user_id == request.auth.uid; // Prevent user_id changes
-      
+                       request.resource.data.user_id == request.auth.uid &&
+                       request.resource.data.course_id == resource.data.course_id;
+
       allow delete: if false; // Never allow deletion via client
     }
     
@@ -111,19 +109,29 @@ service cloud.firestore {
       allow read: if isAuthenticated() &&
                      (resource.data.user_id == request.auth.uid || isAdmin());
 
-      // Allow create only if creating for yourself with valid data
-      allow create: if isAuthenticated() && 
+      // Progress is only writable for a lesson of a course the caller has
+      // paid for — otherwise anyone could mark lessons complete and claim a
+      // certificate for a course they never bought
+      allow create: if isAuthenticated() &&
+                       progressId == request.auth.uid + '_' + request.resource.data.video_id &&
                        request.resource.data.user_id == request.auth.uid &&
-                       request.resource.data.keys().hasAll(['user_id', 'course_id']) &&
-                       request.resource.data.user_id is string &&
-                       request.resource.data.course_id is string;
-      
-      // Allow update only if you own the document
-      allow update: if isAuthenticated() && 
+                       isValidProgress();
+
+      allow update: if isAuthenticated() &&
                        resource.data.user_id == request.auth.uid &&
-                       request.resource.data.user_id == request.auth.uid; // Prevent user_id changes
-      
+                       request.resource.data.user_id == request.auth.uid &&
+                       request.resource.data.video_id == resource.data.video_id &&
+                       request.resource.data.course_id == resource.data.course_id &&
+                       isValidProgress();
+
       allow delete: if false; // Never allow deletion via client
+    }
+
+    function isValidProgress() {
+      return request.resource.data.video_id is string &&
+             request.resource.data.course_id is string &&
+             get(/databases/$(database)/documents/videos/$(request.resource.data.video_id)).data.course_id == request.resource.data.course_id &&
+             get(/databases/$(database)/documents/payments/$(request.auth.uid + '_' + request.resource.data.course_id)).data.status == 'completed';
     }
     
     // Payments collection - ULTRA STRICT
@@ -132,17 +140,9 @@ service cloud.firestore {
       allow read: if isAuthenticated() &&
                      (resource.data.user_id == request.auth.uid || isAdmin());
 
-      // Allow create only with status='pending' — completed/failed set server-side only
-      allow create: if isAuthenticated() &&
-                       request.resource.data.user_id == request.auth.uid &&
-                       request.resource.data.keys().hasAll(['user_id', 'course_id', 'amount', 'status']) &&
-                       request.resource.data.user_id is string &&
-                       request.resource.data.course_id is string &&
-                       request.resource.data.amount is number &&
-                       request.resource.data.amount > 0 &&
-                       request.resource.data.status == 'pending';
-
-      // Clients cannot change payment status — that is handled server-side via Admin SDK
+      // Payment records are created and updated only by the server
+      // (create-payment, verify-payment and the webhooks, via Admin SDK)
+      allow create: if false;
       allow update: if false;
       
       allow delete: if false; // Never allow payment deletion via client
