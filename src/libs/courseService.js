@@ -228,6 +228,7 @@ export const courseService = {
       const videosQuery = query(videosRef, where("course_id", "==", courseId));
       const videosSnapshot = await getDocs(videosQuery);
       const totalVideos = videosSnapshot.docs.length;
+      const videoIds = new Set(videosSnapshot.docs.map((doc) => doc.id));
 
       // Then get the progress
       const progressRef = collection(db, "user_progress");
@@ -238,7 +239,12 @@ export const courseService = {
       );
       const snapshot = await getDocs(q);
 
-      const completedVideos = snapshot.docs.filter(
+      // Ignore progress left behind by videos that have since been deleted
+      const progressDocs = snapshot.docs.filter((doc) =>
+        videoIds.has(doc.data().video_id)
+      );
+
+      const completedVideos = progressDocs.filter(
         (doc) => doc.data().completed
       ).length;
       const progressPercentage =
@@ -248,7 +254,7 @@ export const courseService = {
         completedCount: completedVideos,
         totalCount: totalVideos,
         percentage: progressPercentage,
-        videos: snapshot.docs.map((doc) => ({
+        videos: progressDocs.map((doc) => ({
           video_id: doc.data().video_id,
           completed: doc.data().completed || false,
           position: doc.data().position || 0,
@@ -291,10 +297,13 @@ export const courseService = {
       return {
         id: courseId,
         ...courseData,
-        videos: videosSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
+        // Admin-created videos get random doc IDs, so order explicitly
+        videos: videosSnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          .sort((a, b) => (a.order || 0) - (b.order || 0)),
       };
     } catch (error) {
       console.error("Error fetching course details:", error);
