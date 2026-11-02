@@ -53,6 +53,193 @@ const LockIcon = () => (
   </svg>
 );
 
+const ModuleCard = ({
+  module,
+  stageLabel,
+  numbering,
+  numberingLabel,
+  itemNumbers,
+  completed,
+  isUnlocked,
+  openHints,
+  toggleItem,
+  toggleHint,
+  setIsAuthModalOpen,
+}) => {
+  const done = module.items.filter(
+    (item) => completed[`${module.id}:${item.id}`]
+  ).length;
+  const stageComplete = module.items.length > 0 && done === module.items.length;
+
+  return (
+    <article
+      id={`module-${module.id}`}
+      className="scroll-mt-8 overflow-hidden rounded-lg border border-white/10 bg-[#171717] shadow-xl shadow-black/15"
+    >
+      <div className="border-b border-white/10 bg-white/[0.03] p-4 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-sm font-black text-emerald-200">
+              {stageLabel}
+              {module.duration ? (
+                <span className="ml-3 font-bold text-white/45">
+                  {module.duration}
+                </span>
+              ) : null}
+            </div>
+            <h2 className="mt-2 text-xl font-black md:text-2xl">
+              {module.title}
+            </h2>
+            <p className="mt-2.5 max-w-3xl text-sm leading-6 text-white/65">
+              {module.focus}
+            </p>
+            {module.guide ? (
+              <Link
+                href={module.guide}
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-300 transition hover:text-emerald-200 hover:underline"
+              >
+                Read the full build guide
+                <span aria-hidden="true">→</span>
+              </Link>
+            ) : null}
+          </div>
+          <div
+            className={`min-w-32 rounded-lg border px-3.5 py-2.5 text-sm ${
+              stageComplete
+                ? "border-emerald-300/40 bg-emerald-300/[0.08] text-emerald-100"
+                : "border-white/10 bg-black/20 text-white/70"
+            }`}
+          >
+            {stageComplete ? (
+              <span className="font-black">Stage complete</span>
+            ) : (
+              <>
+                <span className="font-black text-white">{done}</span>
+                /{module.items.length} complete
+              </>
+            )}
+          </div>
+        </div>
+        <p className="mt-4 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] p-3.5 text-sm leading-6 text-cyan-50/85">
+          {module.interviewCopy}
+        </p>
+      </div>
+
+      <div className="divide-y divide-white/10">
+        {module.items.map((item, itemIndex) => {
+          const key = `${module.id}:${item.id}`;
+          const isDone = Boolean(completed[key]);
+          const itemNumber =
+            numbering === "day" ? itemNumbers[key] : itemIndex + 1;
+          const hintOpen = Boolean(openHints[key]);
+
+          return (
+            <div
+              key={item.id}
+              className={`grid gap-4 p-4 transition md:grid-cols-[auto_1fr_auto] md:items-center md:p-5 ${
+                isDone ? "bg-emerald-300/[0.035]" : ""
+              }`}
+            >
+              <button
+                onClick={() => toggleItem(module.id, item.id)}
+                aria-pressed={isDone}
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition ${
+                  isDone
+                    ? "border-emerald-300 bg-emerald-500 text-white"
+                    : isUnlocked
+                      ? "border-white/15 bg-white/[0.03] text-white/20 hover:border-emerald-300/50 hover:text-emerald-200/70"
+                      : "border-white/10 bg-white/[0.025] text-white/40 hover:border-amber-300/40 hover:text-amber-100"
+                }`}
+                aria-label={
+                  isUnlocked
+                    ? `Mark ${item.title} ${isDone ? "incomplete" : "complete"}`
+                    : "Sign in to track this item"
+                }
+              >
+                {!isUnlocked && !isDone ? <LockIcon /> : <CheckIcon />}
+              </button>
+
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-emerald-300/25 bg-emerald-300/[0.08] px-2 py-0.5 text-xs font-black text-emerald-100">
+                    {numberingLabel} {itemNumber}
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-white/50">
+                    {item.source}
+                  </span>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-xs font-bold ${getDifficultyClass(
+                      item.difficulty
+                    )}`}
+                  >
+                    {item.difficulty}
+                  </span>
+                </div>
+                <h3 className="mt-1.5 text-base font-black text-white">
+                  {item.title}
+                </h3>
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  {item.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs text-white/60"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                {item.hint && isUnlocked && hintOpen && (
+                  <div className="mt-3 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.05] px-3.5 py-2.5 text-sm leading-6 text-cyan-50/90">
+                    <span className="mr-2 font-black uppercase tracking-[0.14em] text-cyan-200/80 text-xs">
+                      Hint
+                    </span>
+                    {item.hint}
+                  </div>
+                )}
+              </div>
+
+              {!isUnlocked ? (
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="rounded-lg border border-amber-300/25 bg-amber-300/[0.06] px-3.5 py-1.5 text-sm font-bold text-amber-50/80 transition hover:border-amber-300/45 hover:bg-amber-300/[0.1] hover:text-amber-50"
+                >
+                  Sign in
+                </button>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {item.url && (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-lg border border-white/15 px-3.5 py-1.5 text-center text-sm font-bold text-white/80 transition hover:border-emerald-300/50 hover:bg-emerald-300/[0.08]"
+                    >
+                      Open
+                    </a>
+                  )}
+                  {item.hint && (
+                    <button
+                      onClick={() => toggleHint(key)}
+                      aria-expanded={hintOpen}
+                      className={`rounded-lg border px-3.5 py-1.5 text-sm font-bold transition ${
+                        hintOpen
+                          ? "border-cyan-300/50 bg-cyan-300/[0.1] text-cyan-100"
+                          : "border-white/15 text-white/80 hover:border-cyan-300/50 hover:bg-cyan-300/[0.08]"
+                      }`}
+                    >
+                      {hintOpen ? "Hide hint" : "Show hint"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </article>
+  );
+};
+
 const RoadmapPage = ({ slug }) => {
   const { user, loading } = useAuth();
   const [roadmap, setRoadmap] = useState(() => getDefaultRoadmap(slug));
@@ -169,18 +356,24 @@ const RoadmapPage = ({ slug }) => {
       ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
   }, [activeModule]);
 
-  // Global "Day N" numbers (DSA) computed from item order.
+  const bonusModules = useMemo(
+    () => roadmap?.bonus?.modules || [],
+    [roadmap]
+  );
+
+  // Global "Day N" numbers (DSA) computed from item order — main path first,
+  // then bonus, so bonus days continue the count (Day 91, 92, ...).
   const itemNumbers = useMemo(() => {
     const numbers = {};
     let counter = 0;
-    roadmap?.modules?.forEach((module) => {
+    [...(roadmap?.modules || []), ...bonusModules].forEach((module) => {
       module.items.forEach((item) => {
         counter += 1;
         numbers[`${module.id}:${item.id}`] = counter;
       });
     });
     return numbers;
-  }, [roadmap]);
+  }, [roadmap, bonusModules]);
 
   const validKeys = useMemo(() => {
     const keys = new Set();
@@ -200,6 +393,25 @@ const RoadmapPage = ({ slug }) => {
     const percent = total ? Math.round((done / total) * 100) : 0;
     return { total, done, percent };
   }, [validKeys, completed]);
+
+  // Kept separate from `totals` on purpose: the main-path progress bar (and
+  // the bonus unlock check below) must only ever reflect the 90 main days.
+  const bonusValidKeys = useMemo(() => {
+    const keys = new Set();
+    bonusModules.forEach((module) => {
+      module.items.forEach((item) => keys.add(`${module.id}:${item.id}`));
+    });
+    return keys;
+  }, [bonusModules]);
+
+  const bonusTotals = useMemo(() => {
+    const total = bonusValidKeys.size;
+    const done = Object.entries(completed).filter(
+      ([key, value]) => value && bonusValidKeys.has(key)
+    ).length;
+    const percent = total ? Math.round((done / total) * 100) : 0;
+    return { total, done, percent };
+  }, [bonusValidKeys, completed]);
 
   const firstIncompleteModuleId = useMemo(() => {
     for (const stage of roadmap?.modules || []) {
@@ -225,6 +437,8 @@ const RoadmapPage = ({ slug }) => {
 
   const isUnlocked = Boolean(user);
   const numberingLabel = roadmap.numbering === "day" ? "Day" : "Step";
+  const bonusUnlocked =
+    isUnlocked && totals.total > 0 && totals.done === totals.total;
 
   const scrollToModule = (moduleId) => {
     setActiveModule(moduleId);
@@ -486,194 +700,166 @@ const RoadmapPage = ({ slug }) => {
                   </button>
                 );
               })}
+
+              {roadmap.bonus && bonusModules.length > 0 && (
+                <button
+                  id="nav-module-bonus-section"
+                  onClick={() => scrollToModule("bonus-section")}
+                  className={`group relative min-w-[200px] shrink-0 overflow-hidden rounded-lg border px-3.5 py-2.5 text-left transition lg:min-w-0 lg:shrink ${
+                    activeModule === "bonus-section"
+                      ? "border-amber-300/55 bg-amber-300/[0.1] shadow-[inset_3px_0_0_rgba(252,211,77,0.9)]"
+                      : "border-amber-300/20 bg-amber-300/[0.03] hover:border-amber-300/40"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span
+                      className={`text-xs font-black ${
+                        activeModule === "bonus-section"
+                          ? "text-amber-200"
+                          : "text-amber-200/70"
+                      }`}
+                    >
+                      {bonusUnlocked ? "🎁" : "🔒"}
+                    </span>
+                    <span className="text-xs text-white/55">
+                      {bonusUnlocked
+                        ? `${bonusTotals.done}/${bonusTotals.total}`
+                        : "Locked"}
+                    </span>
+                  </div>
+                  <div
+                    className={`mt-1.5 text-sm font-bold ${
+                      activeModule === "bonus-section"
+                        ? "text-white"
+                        : "text-white/78"
+                    }`}
+                  >
+                    Bonus
+                  </div>
+                  <div className="mt-1 text-xs text-white/55">+30 days</div>
+                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-black/40">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        bonusTotals.percent === 100
+                          ? "bg-emerald-300"
+                          : "bg-amber-300/60"
+                      }`}
+                      style={{
+                        width: `${bonusUnlocked ? bonusTotals.percent : 0}%`,
+                      }}
+                    />
+                  </div>
+                </button>
+              )}
             </div>
           </aside>
 
           <div className="grid gap-6">
-            {roadmap.modules.map((module, moduleIndex) => {
-              const done = module.items.filter(
-                (item) => completed[`${module.id}:${item.id}`]
-              ).length;
-              const stageComplete =
-                module.items.length > 0 && done === module.items.length;
+            {roadmap.modules.map((module, moduleIndex) => (
+              <ModuleCard
+                key={module.id}
+                module={module}
+                stageLabel={`Stage ${moduleIndex + 1} / ${roadmap.modules.length}`}
+                numbering={roadmap.numbering}
+                numberingLabel={numberingLabel}
+                itemNumbers={itemNumbers}
+                completed={completed}
+                isUnlocked={isUnlocked}
+                openHints={openHints}
+                toggleItem={toggleItem}
+                toggleHint={toggleHint}
+                setIsAuthModalOpen={setIsAuthModalOpen}
+              />
+            ))}
 
-              return (
-                <article
-                  key={module.id}
-                  id={`module-${module.id}`}
-                  className="scroll-mt-8 overflow-hidden rounded-lg border border-white/10 bg-[#171717] shadow-xl shadow-black/15"
-                >
-                  <div className="border-b border-white/10 bg-white/[0.03] p-4 md:p-6">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <div className="text-sm font-black text-emerald-200">
-                          Stage {moduleIndex + 1} / {roadmap.modules.length}
-                          {module.duration ? (
-                            <span className="ml-3 font-bold text-white/45">
-                              {module.duration}
-                            </span>
-                          ) : null}
-                        </div>
-                        <h2 className="mt-2 text-xl font-black md:text-2xl">
-                          {module.title}
-                        </h2>
-                        <p className="mt-2.5 max-w-3xl text-sm leading-6 text-white/65">
-                          {module.focus}
+            {roadmap.bonus && bonusModules.length > 0 && (
+              <div
+                id="module-bonus-section"
+                className="scroll-mt-8 overflow-hidden rounded-lg border border-amber-300/20 bg-[#171717] shadow-xl shadow-black/15"
+              >
+                <div className="border-b border-white/10 bg-gradient-to-br from-amber-300/[0.07] via-transparent to-transparent p-4 md:p-6">
+                  <div className="text-sm font-black text-amber-200">
+                    {roadmap.bonus.eyebrow}
+                  </div>
+                  <h2 className="mt-2 text-xl font-black md:text-2xl">
+                    {roadmap.bonus.title}
+                  </h2>
+                  <p className="mt-2.5 max-w-3xl text-sm leading-6 text-white/65">
+                    {roadmap.bonus.description}
+                  </p>
+
+                  {bonusUnlocked ? (
+                    <div className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-300/[0.08] px-4 py-3 text-sm font-bold text-emerald-100">
+                      <span aria-hidden="true">🎉</span>
+                      Bonus unlocked — {bonusTotals.done}/{bonusTotals.total}{" "}
+                      complete
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <p className="text-sm leading-6 text-white/70">
+                          {roadmap.bonus.unlockCopy}
                         </p>
-                        {module.guide ? (
-                          <Link
-                            href={module.guide}
-                            className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-300 transition hover:text-emerald-200 hover:underline"
-                          >
-                            Read the full build guide
-                            <span aria-hidden="true">→</span>
-                          </Link>
-                        ) : null}
+                        <div className="shrink-0 text-sm text-white/60 sm:text-right">
+                          {totals.done} of {totals.total} main days done
+                        </div>
                       </div>
-                      <div
-                        className={`min-w-32 rounded-lg border px-3.5 py-2.5 text-sm ${
-                          stageComplete
-                            ? "border-emerald-300/40 bg-emerald-300/[0.08] text-emerald-100"
-                            : "border-white/10 bg-black/20 text-white/70"
-                        }`}
-                      >
-                        {stageComplete ? (
-                          <span className="font-black">Stage complete</span>
-                        ) : (
-                          <>
-                            <span className="font-black text-white">{done}</span>
-                            /{module.items.length} complete
-                          </>
-                        )}
+                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/40">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-amber-300 to-emerald-300 transition-all duration-500"
+                          style={{ width: `${totals.percent}%` }}
+                        />
                       </div>
                     </div>
-                    <p className="mt-4 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] p-3.5 text-sm leading-6 text-cyan-50/85">
-                      {module.interviewCopy}
-                    </p>
-                  </div>
+                  )}
+                </div>
 
+                {bonusUnlocked ? (
+                  <div className="grid gap-6 p-4 md:p-6">
+                    {bonusModules.map((module, moduleIndex) => (
+                      <ModuleCard
+                        key={module.id}
+                        module={module}
+                        stageLabel={`Bonus Stage ${moduleIndex + 1} / ${bonusModules.length}`}
+                        numbering={roadmap.numbering}
+                        numberingLabel={numberingLabel}
+                        itemNumbers={itemNumbers}
+                        completed={completed}
+                        isUnlocked={isUnlocked}
+                        openHints={openHints}
+                        toggleItem={toggleItem}
+                        toggleHint={toggleHint}
+                        setIsAuthModalOpen={setIsAuthModalOpen}
+                      />
+                    ))}
+                  </div>
+                ) : (
                   <div className="divide-y divide-white/10">
-                    {module.items.map((item, itemIndex) => {
-                      const key = `${module.id}:${item.id}`;
-                      const isDone = Boolean(completed[key]);
-                      const itemNumber =
-                        roadmap.numbering === "day"
-                          ? itemNumbers[key]
-                          : itemIndex + 1;
-                      const hintOpen = Boolean(openHints[key]);
-
-                      return (
-                        <div
-                          key={item.id}
-                          className={`grid gap-4 p-4 transition md:grid-cols-[auto_1fr_auto] md:items-center md:p-5 ${
-                            isDone ? "bg-emerald-300/[0.035]" : ""
-                          }`}
-                        >
-                          <button
-                            onClick={() => toggleItem(module.id, item.id)}
-                            aria-pressed={isDone}
-                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition ${
-                              isDone
-                                ? "border-emerald-300 bg-emerald-500 text-white"
-                                : isUnlocked
-                                  ? "border-white/15 bg-white/[0.03] text-white/20 hover:border-emerald-300/50 hover:text-emerald-200/70"
-                                  : "border-white/10 bg-white/[0.025] text-white/40 hover:border-amber-300/40 hover:text-amber-100"
-                            }`}
-                            aria-label={
-                              isUnlocked
-                                ? `Mark ${item.title} ${
-                                    isDone ? "incomplete" : "complete"
-                                  }`
-                                : "Sign in to track this item"
-                            }
-                          >
-                            {!isUnlocked && !isDone ? (
-                              <LockIcon />
-                            ) : (
-                              <CheckIcon />
-                            )}
-                          </button>
-
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="rounded-full border border-emerald-300/25 bg-emerald-300/[0.08] px-2 py-0.5 text-xs font-black text-emerald-100">
-                                {numberingLabel} {itemNumber}
-                              </span>
-                              <span className="text-xs font-bold uppercase tracking-[0.14em] text-white/50">
-                                {item.source}
-                              </span>
-                              <span
-                                className={`rounded-full border px-2 py-0.5 text-xs font-bold ${getDifficultyClass(
-                                  item.difficulty
-                                )}`}
-                              >
-                                {item.difficulty}
-                              </span>
-                            </div>
-                            <h3 className="mt-1.5 text-base font-black text-white">
-                              {item.title}
-                            </h3>
-                            <div className="mt-2.5 flex flex-wrap gap-2">
-                              {item.tags.map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs text-white/60"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                            {item.hint && isUnlocked && hintOpen && (
-                              <div className="mt-3 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.05] px-3.5 py-2.5 text-sm leading-6 text-cyan-50/90">
-                                <span className="mr-2 font-black uppercase tracking-[0.14em] text-cyan-200/80 text-xs">
-                                  Hint
-                                </span>
-                                {item.hint}
-                              </div>
-                            )}
-                          </div>
-
-                          {!isUnlocked ? (
-                            <button
-                              onClick={() => setIsAuthModalOpen(true)}
-                              className="rounded-lg border border-amber-300/25 bg-amber-300/[0.06] px-3.5 py-1.5 text-sm font-bold text-amber-50/80 transition hover:border-amber-300/45 hover:bg-amber-300/[0.1] hover:text-amber-50"
-                            >
-                              Sign in
-                            </button>
-                          ) : (
-                            <div className="flex flex-col gap-2">
-                              {item.url && (
-                                <a
-                                  href={item.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="rounded-lg border border-white/15 px-3.5 py-1.5 text-center text-sm font-bold text-white/80 transition hover:border-emerald-300/50 hover:bg-emerald-300/[0.08]"
-                                >
-                                  Open
-                                </a>
-                              )}
-                              {item.hint && (
-                                <button
-                                  onClick={() => toggleHint(key)}
-                                  aria-expanded={hintOpen}
-                                  className={`rounded-lg border px-3.5 py-1.5 text-sm font-bold transition ${
-                                    hintOpen
-                                      ? "border-cyan-300/50 bg-cyan-300/[0.1] text-cyan-100"
-                                      : "border-white/15 text-white/80 hover:border-cyan-300/50 hover:bg-cyan-300/[0.08]"
-                                  }`}
-                                >
-                                  {hintOpen ? "Hide hint" : "Show hint"}
-                                </button>
-                              )}
-                            </div>
-                          )}
+                    {bonusModules.map((module) => (
+                      <div
+                        key={module.id}
+                        className="flex items-center justify-between gap-4 p-4 md:p-5"
+                      >
+                        <div>
+                          <h3 className="text-sm font-black text-white/85">
+                            {module.title}
+                          </h3>
+                          <p className="mt-1 text-xs text-white/50">
+                            {module.duration} · {module.items.length} problems
+                          </p>
                         </div>
-                      );
-                    })}
+                        <span
+                          aria-hidden="true"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-white/30"
+                        >
+                          <LockIcon />
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                </article>
-              );
-            })}
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
