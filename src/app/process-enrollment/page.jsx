@@ -7,6 +7,7 @@ import { courseService } from "@/libs/courseService";
 import { locationService } from "@/libs/locationService";
 import { auth } from "@/libs/firebase";
 import config from "@/config";
+import { trackEvent } from "@/libs/analytics";
 
 const ProcessEnrollmentContent = () => {
   const router = useRouter();
@@ -74,6 +75,7 @@ const ProcessEnrollmentContent = () => {
         eventCallback: (event) => {
           if (event.name === "checkout.completed") {
             checkoutCompleted = true;
+            trackEvent("purchase", { course_id: courseData.id, provider: "paddle" });
             setStatus("completing");
             pollForAccess(courseData.id);
           } else if (event.name === "checkout.closed" && !checkoutCompleted) {
@@ -106,6 +108,7 @@ const ProcessEnrollmentContent = () => {
         courseData.paddle_price_id &&
         config.paddle.clientToken
       ) {
+        trackEvent("begin_checkout", { course_id: courseData.id, provider: "paddle" });
         await initiatePaddleCheckout(courseData);
         return;
       }
@@ -137,6 +140,13 @@ const ProcessEnrollmentContent = () => {
       if (!response.ok) {
         throw new Error(data.error || "Payment initialization failed");
       }
+
+      trackEvent("begin_checkout", {
+        course_id: courseData.id,
+        provider: "razorpay",
+        value: data.amount,
+        currency: data.currency || "INR",
+      });
 
       // Load Razorpay script dynamically (only if not already loaded)
       if (!window.Razorpay) {
@@ -186,6 +196,14 @@ const ProcessEnrollmentContent = () => {
               const errorData = await verifyResponse.json();
               throw new Error(errorData.error || "Payment verification failed");
             }
+
+            trackEvent("purchase", {
+              course_id: courseData.id,
+              provider: "razorpay",
+              value: data.amount,
+              currency: data.currency || "INR",
+              transaction_id: razorpayResponse.razorpay_payment_id,
+            });
 
             // Update display metadata (title, thumbnail) — non-security, best-effort
             await courseService.updateLastAccessed(user.id, courseData.id, {

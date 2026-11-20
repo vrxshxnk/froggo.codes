@@ -6,6 +6,7 @@ import SignInModal from "@/components/auth/SignInModal";
 import { useAuth } from "@/context/AuthContext";
 import { roadmapService } from "@/libs/roadmapService";
 import { getDefaultRoadmap } from "@/data/roadmaps";
+import { trackEvent } from "@/libs/analytics";
 
 const difficultyStyles = {
   Easy: "bg-emerald-400/10 text-emerald-200 border-emerald-400/30",
@@ -261,6 +262,10 @@ const RoadmapPage = ({ slug }) => {
   };
 
   useEffect(() => {
+    trackEvent("roadmap_view", { roadmap: slug });
+  }, [slug]);
+
+  useEffect(() => {
     let isMounted = true;
 
     const loadRoadmap = async () => {
@@ -448,6 +453,7 @@ const RoadmapPage = ({ slug }) => {
   };
 
   const handlePrimaryAction = () => {
+    trackEvent("roadmap_start_click", { roadmap: slug, signed_in: isUnlocked });
     if (!isUnlocked) {
       setIsAuthModalOpen(true);
       return;
@@ -465,6 +471,7 @@ const RoadmapPage = ({ slug }) => {
 
   const toggleItem = async (moduleId, itemId) => {
     if (!user?.id) {
+      trackEvent("roadmap_locked_click", { roadmap: slug, item: itemId });
       setIsAuthModalOpen(true);
       return;
     }
@@ -481,6 +488,16 @@ const RoadmapPage = ({ slug }) => {
       await roadmapService.setProgress(user.id, roadmap.slug, nextCompleted);
       setProgressNotice("");
       setSaveState("saved");
+      if (!previousValue) {
+        const doneCount = Object.values(nextCompleted).filter(Boolean).length;
+        trackEvent("roadmap_item_complete", {
+          roadmap: slug,
+          module: moduleId,
+          item: itemId,
+          done_count: doneCount,
+        });
+        if (doneCount === 1) trackEvent("roadmap_first_tick", { roadmap: slug });
+      }
       savedTimerRef.current = setTimeout(() => setSaveState("idle"), 2000);
     } catch (error) {
       // Roll back only this item; other in-flight toggles stay intact.

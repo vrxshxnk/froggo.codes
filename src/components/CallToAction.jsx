@@ -36,7 +36,7 @@ const CallToAction = () => {
                 </a>
 
                 <p className="mt-6 text-neutral-400 text-sm">
-                    Join 200+ students already on their way to success
+                    The DSA and Development roadmaps are free — start Day 1 today 🐸
                 </p>
             </div>
         </section>

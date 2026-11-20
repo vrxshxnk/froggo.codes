@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -19,17 +20,16 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// Initialize Analytics
-let analytics = null;
-if (typeof window !== "undefined") {
-  const { getAnalytics } = require("firebase/analytics");
-  try {
-    analytics = getAnalytics(app);
-  } catch (error) {
-    console.warn("Analytics failed to initialize:", error);
-    analytics = null;
-  }
-}
-
-// export { analytics };
-export { analytics };
+// Analytics only exists in browsers that support it (not during SSR, and
+// not where cookies/IndexedDB are blocked). A static import registers the
+// analytics component with this app; the old conditional require() didn't,
+// so getAnalytics() threw and no event was ever recorded.
+export const analyticsPromise =
+  typeof window === "undefined"
+    ? Promise.resolve(null)
+    : isSupported()
+        .then((supported) => (supported ? getAnalytics(app) : null))
+        .catch((error) => {
+          console.warn("Analytics failed to initialize:", error);
+          return null;
+        });

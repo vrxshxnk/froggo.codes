@@ -1,5 +1,39 @@
+// Every third party the browser talks to: Firebase Auth (Google sign-in
+// popup) and Analytics, Razorpay and Paddle checkout, Bunny Stream embeds,
+// and the location lookup used for INR vs USD pricing.
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.paddle.com https://apis.google.com https://www.googletagmanager.com https://assets.mediadelivery.net",
+  "style-src 'self' 'unsafe-inline' https://cdn.paddle.com",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://api.razorpay.com https://lumberjack.razorpay.com https://*.paddle.com https://cloudflare.com https://ip-api.com https://*.mediadelivery.net",
+  "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://api.razorpay.com https://checkout.razorpay.com https://*.paddle.com https://iframe.mediadelivery.net",
+].join("; ");
+
+const securityHeaders = [
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(self \"https://checkout.razorpay.com\" \"https://api.razorpay.com\" \"https://buy.paddle.com\")",
+  },
+  // Report-only while we confirm checkout and sign-in raise no violations in
+  // the browser console; switch the key to Content-Security-Policy after that
+  { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy },
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
   output: "standalone",
   experimental: {
     // Optional: Only needed for older Next.js versions

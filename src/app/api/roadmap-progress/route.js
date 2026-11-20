@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb, verifyAuthToken } from "@/libs/firebaseAdmin";
+import { defaultRoadmaps } from "@/data/roadmaps";
 
 const allowedRoadmaps = new Set(["dsa", "development"]);
 
@@ -10,6 +11,35 @@ function isValidRoadmapId(roadmapId) {
 
 function progressDocId(userId, roadmapId) {
   return `${userId}_${roadmapId}`;
+}
+
+function addItemKeys(keys, roadmap) {
+  const modules = [
+    ...(roadmap?.modules || []),
+    ...(roadmap?.bonus?.modules || []),
+  ];
+  modules.forEach((module) => {
+    (module?.items || []).forEach((item) => {
+      if (module?.id && item?.id) keys.add(`${module.id}:${item.id}`);
+    });
+  });
+}
+
+// Progress keys are "moduleId:itemId". Only keys for items that exist — in
+// the code roadmap or an admin Firestore override — are stored, so progress
+// can later back streaks and certificates without trusting the client.
+async function getValidKeys(roadmapId) {
+  const keys = new Set();
+  addItemKeys(keys, defaultRoadmaps[roadmapId]);
+
+  try {
+    const override = await adminDb.collection("roadmaps").doc(roadmapId).get();
+    if (override.exists) addItemKeys(keys, override.data());
+  } catch (overrideError) {
+    console.error("Roadmap override read failed:", overrideError);
+  }
+
+  return keys;
 }
 
 function sanitizeCompleted(completed) {
@@ -90,18 +120,38 @@ export async function POST(request) {
   }
 
   try {
-    await adminDb
+    const validKeys = await getValidKeys(body.roadmapId);
+    const filtered = Object.fromEntries(
+      Object.entries(completed).filter(([key]) => validKeys.has(key))
+    );
+
+    const docRef = adminDb
       .collection("roadmap_progress")
-      .doc(progressDocId(user.userId, body.roadmapId))
-      .set(
-        {
-          user_id: user.userId,
-          roadmap_id: body.roadmapId,
-          completed,
-          updated_at: FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
+      .doc(progressDocId(user.userId, body.roadmapId));
+    const existing = await docRef.get();
+    const existingCompletedAt = existing.exists
+      ? existing.data()?.completed_at || {}
+      : {};
+
+    // Server-side completion times: set when an item is first ticked,
+    // cleared when it's unticked. Clients can't backdate a streak.
+    const now = new Date().toISOString();
+    const completedAt = {};
+    Object.entries(filtered).forEach(([key, done]) => {
+      if (done && !existingCompletedAt[key]) completedAt[key] = now;
+      if (!done && existingCompletedAt[key]) completedAt[key] = FieldValue.delete();
+    });
+
+    await docRef.set(
+      {
+        user_id: user.userId,
+        roadmap_id: body.roadmapId,
+        completed: filtered,
+        ...(Object.keys(completedAt).length ? { completed_at: completedAt } : {}),
+        updated_at: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
 
     return NextResponse.json({ success: true });
   } catch (routeError) {

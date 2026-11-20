@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { courseService } from "@/libs/courseService";
 import Link from "next/link";
+import WaitlistModal from "@/components/WaitlistModal";
 
 const MyCourses = () => {
   const { user, loading } = useAuth();
@@ -102,12 +103,17 @@ const MyCourses = () => {
     fetchCourses();
   }, [user]);
 
-  const handleEnroll = (courseId) => {
+  const handleEnroll = (course) => {
+    // Coming-soon courses can't be bought yet; checkout would only error
+    if (course.coming_soon) {
+      window.dispatchEvent(new CustomEvent("open-waitlist-modal"));
+      return;
+    }
     if (!user) {
       window.dispatchEvent(new CustomEvent("open-signup-modal"));
       return;
     }
-    router.push(`/process-enrollment?courseId=${courseId}`);
+    router.push(`/process-enrollment?courseId=${course.id}`);
   };
 
   if (loading || isLoading) {
@@ -122,6 +128,9 @@ const MyCourses = () => {
 
   return (
     <main className="min-h-screen bg-[#181818] py-24 px-8">
+      {/* Signed-in visitors never get the auto popup; it only opens from
+          a coming-soon course's "Notify me" button */}
+      <WaitlistModal />
       <div className="max-w-4xl mx-auto">
         <Link
           href="/"
@@ -192,10 +201,10 @@ const MyCourses = () => {
                           </Link>
                         ) : (
                           <button
-                            onClick={() => handleEnroll(course.id)}
+                            onClick={() => handleEnroll(course)}
                             className="w-full bg-white hover:bg-emerald-100 text-emerald-700 py-2 px-4 rounded-md transition-colors"
                           >
-                            Enroll Now
+                            {course.coming_soon ? "Coming soon · Notify me 🐸" : "Enroll Now"}
                           </button>
                         )}
                       </div>
@@ -303,10 +312,10 @@ const MyCourses = () => {
                           </Link>
                         ) : (
                           <button
-                            onClick={() => handleEnroll(course.id)}
+                            onClick={() => handleEnroll(course)}
                             className="w-full bg-white hover:bg-emerald-100 text-emerald-700 py-2 px-4 rounded-md transition-colors"
                           >
-                            Enroll Now
+                            {course.coming_soon ? "Coming soon · Notify me 🐸" : "Enroll Now"}
                           </button>
                         )}
                       </div>

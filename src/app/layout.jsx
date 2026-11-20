@@ -15,11 +15,30 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
+const description =
+  "Free 90-day DSA roadmap and 6 real projects, one step a day. Track your streak and get interview ready with FroggoCodes.";
+
 export const metadata = {
-  title: "FroggoCodes",
-  description: "Best way to learn to code.",
+  metadataBase: new URL("https://www.froggo.codes"),
+  title: {
+    default: "FroggoCodes — Free DSA & Development Roadmaps",
+    template: "%s",
+  },
+  description,
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "FroggoCodes",
+    title: "FroggoCodes — Free DSA & Development Roadmaps",
+    description,
+    url: "/",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    creator: "@froggocodes",
   },
 };
 

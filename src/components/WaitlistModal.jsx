@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { locationService } from "@/libs/locationService";
+import { trackEvent } from "@/libs/analytics";
 
 // Waitlist popup — same design language as the old full-page waitlist
 // takeover, but dismissible so visitors can explore the rest of the site.
@@ -84,6 +85,10 @@ const WaitlistModal = () => {
       const data = await res.json();
 
       if (data.success) {
+        trackEvent("waitlist_join", {
+          newsletter: needsConsent ? newsletterOptIn : true,
+          page: window.location.pathname,
+        });
         setStatus("success");
         setEmail("");
         localStorage.setItem(DISMISSED_KEY, String(Date.now()));
