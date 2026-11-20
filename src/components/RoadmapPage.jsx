@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import SignInModal from "@/components/auth/SignInModal";
+import RoadmapEmailGate, { readRoadmapUnlock } from "@/components/RoadmapEmailGate";
 import { useAuth } from "@/context/AuthContext";
 import { roadmapService } from "@/libs/roadmapService";
 import { getDefaultRoadmap } from "@/data/roadmaps";
@@ -62,10 +63,11 @@ const ModuleCard = ({
   itemNumbers,
   completed,
   isUnlocked,
+  canTrack,
   openHints,
   toggleItem,
   toggleHint,
-  setIsAuthModalOpen,
+  onUnlockClick,
 }) => {
   const done = module.items.filter(
     (item) => completed[`${module.id}:${item.id}`]
@@ -147,17 +149,17 @@ const ModuleCard = ({
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition ${
                   isDone
                     ? "border-emerald-300 bg-emerald-500 text-white"
-                    : isUnlocked
+                    : canTrack
                       ? "border-white/15 bg-white/[0.03] text-white/20 hover:border-emerald-300/50 hover:text-emerald-200/70"
                       : "border-white/10 bg-white/[0.025] text-white/40 hover:border-amber-300/40 hover:text-amber-100"
                 }`}
                 aria-label={
-                  isUnlocked
+                  canTrack
                     ? `Mark ${item.title} ${isDone ? "incomplete" : "complete"}`
                     : "Sign in to track this item"
                 }
               >
-                {!isUnlocked && !isDone ? <LockIcon /> : <CheckIcon />}
+                {!canTrack && !isDone ? <LockIcon /> : <CheckIcon />}
               </button>
 
               <div>
@@ -201,10 +203,10 @@ const ModuleCard = ({
 
               {!isUnlocked ? (
                 <button
-                  onClick={() => setIsAuthModalOpen(true)}
+                  onClick={onUnlockClick}
                   className="rounded-lg border border-amber-300/25 bg-amber-300/[0.06] px-3.5 py-1.5 text-sm font-bold text-amber-50/80 transition hover:border-amber-300/45 hover:bg-amber-300/[0.1] hover:text-amber-50"
                 >
-                  Sign in
+                  Unlock free
                 </button>
               ) : (
                 <div className="flex flex-col gap-2">
@@ -251,6 +253,12 @@ const RoadmapPage = ({ slug }) => {
   const [progressNotice, setProgressNotice] = useState("");
   const [openHints, setOpenHints] = useState({});
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isEmailGateOpen, setIsEmailGateOpen] = useState(false);
+  const [emailUnlocked, setEmailUnlocked] = useState(false);
+
+  useEffect(() => {
+    setEmailUnlocked(readRoadmapUnlock());
+  }, []);
 
   // Mirror of `completed` so rapid toggles never read stale closures.
   const completedRef = useRef({});
@@ -440,10 +448,17 @@ const RoadmapPage = ({ slug }) => {
     );
   }
 
-  const isUnlocked = Boolean(user);
+  // Email unlocks links and hints; signing in adds progress tracking
+  const canTrack = Boolean(user);
+  const isUnlocked = canTrack || emailUnlocked;
+
+  const openSignIn = () => {
+    setIsEmailGateOpen(false);
+    setIsAuthModalOpen(true);
+  };
   const numberingLabel = roadmap.numbering === "day" ? "Day" : "Step";
   const bonusUnlocked =
-    isUnlocked && totals.total > 0 && totals.done === totals.total;
+    canTrack && totals.total > 0 && totals.done === totals.total;
 
   const scrollToModule = (moduleId) => {
     setActiveModule(moduleId);
@@ -453,9 +468,9 @@ const RoadmapPage = ({ slug }) => {
   };
 
   const handlePrimaryAction = () => {
-    trackEvent("roadmap_start_click", { roadmap: slug, signed_in: isUnlocked });
+    trackEvent("roadmap_start_click", { roadmap: slug, signed_in: canTrack, unlocked: isUnlocked });
     if (!isUnlocked) {
-      setIsAuthModalOpen(true);
+      setIsEmailGateOpen(true);
       return;
     }
     scrollToModule(firstIncompleteModuleId);
@@ -463,7 +478,7 @@ const RoadmapPage = ({ slug }) => {
 
   const toggleHint = (key) => {
     if (!isUnlocked) {
-      setIsAuthModalOpen(true);
+      setIsEmailGateOpen(true);
       return;
     }
     setOpenHints((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -510,8 +525,8 @@ const RoadmapPage = ({ slug }) => {
     }
   };
 
-  const progressStatusText = !isUnlocked
-    ? "Sign in to start tracking."
+  const progressStatusText = !canTrack
+    ? "Sign in to track your progress."
     : progressStatus === "loading"
       ? "Loading your progress..."
       : saveState === "saving"
@@ -553,7 +568,7 @@ const RoadmapPage = ({ slug }) => {
                 onClick={handlePrimaryAction}
                 className="rounded-lg bg-emerald-500 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-emerald-950/30 transition hover:bg-emerald-400"
               >
-                {isUnlocked && totals.done > 0
+                {canTrack && totals.done > 0
                   ? "Continue where you left off"
                   : roadmap.primaryAction}
               </button>
@@ -649,10 +664,24 @@ const RoadmapPage = ({ slug }) => {
 
       <section id="roadmap" className="mx-auto max-w-7xl px-6 py-12 md:px-10">
         {!loading && !isUnlocked && (
-          <div className="mb-8 rounded-lg border border-amber-300/25 bg-amber-300/[0.08] p-5 text-sm leading-6 text-amber-50">
-            Every stage stays visible so you can inspect the full path. Sign in
-            to open links, reveal hints, and keep your progress synced to your
-            account.
+          <RoadmapEmailGate
+            slug={slug}
+            onUnlocked={() => setEmailUnlocked(true)}
+            onSignIn={openSignIn}
+          />
+        )}
+        {!loading && isUnlocked && !canTrack && (
+          <div className="mb-8 flex flex-col gap-3 rounded-lg border border-emerald-300/25 bg-emerald-300/[0.06] p-5 text-sm leading-6 text-emerald-50 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              You&apos;re in 🐸 Every link and hint is unlocked. Sign in to
+              tick off problems and keep your streak.
+            </span>
+            <button
+              onClick={openSignIn}
+              className="shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
+            >
+              Sign in to track progress
+            </button>
           </div>
         )}
 
@@ -782,10 +811,11 @@ const RoadmapPage = ({ slug }) => {
                 itemNumbers={itemNumbers}
                 completed={completed}
                 isUnlocked={isUnlocked}
+                canTrack={canTrack}
                 openHints={openHints}
                 toggleItem={toggleItem}
                 toggleHint={toggleHint}
-                setIsAuthModalOpen={setIsAuthModalOpen}
+                onUnlockClick={() => setIsEmailGateOpen(true)}
               />
             ))}
 
@@ -843,10 +873,11 @@ const RoadmapPage = ({ slug }) => {
                         itemNumbers={itemNumbers}
                         completed={completed}
                         isUnlocked={isUnlocked}
+                        canTrack={canTrack}
                         openHints={openHints}
                         toggleItem={toggleItem}
                         toggleHint={toggleHint}
-                        setIsAuthModalOpen={setIsAuthModalOpen}
+                        onUnlockClick={() => setIsEmailGateOpen(true)}
                       />
                     ))}
                   </div>
@@ -880,6 +911,18 @@ const RoadmapPage = ({ slug }) => {
           </div>
         </div>
       </section>
+      {isEmailGateOpen && !isUnlocked && (
+        <RoadmapEmailGate
+          variant="modal"
+          slug={slug}
+          onUnlocked={() => {
+            setEmailUnlocked(true);
+            setIsEmailGateOpen(false);
+          }}
+          onSignIn={openSignIn}
+          onClose={() => setIsEmailGateOpen(false)}
+        />
+      )}
       <SignInModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

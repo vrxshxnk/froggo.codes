@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
-import { locationService } from "@/libs/locationService";
+import NewsletterCheckbox, { useNewsletterConsent } from "@/components/NewsletterCheckbox";
 import { trackEvent } from "@/libs/analytics";
 
 // Waitlist popup — same design language as the old full-page waitlist
@@ -17,17 +17,10 @@ const WaitlistModal = () => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [errorMessage, setErrorMessage] = useState("");
-  // In consent-required jurisdictions (EU/UK/EEA/CH) the newsletter is an
-  // explicit unchecked opt-in; everywhere else it's implied with clear copy
-  const [needsConsent, setNeedsConsent] = useState(false);
-  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
-
-  useEffect(() => {
-    locationService
-      .requiresMarketingConsent()
-      .then(setNeedsConsent)
-      .catch(() => setNeedsConsent(true));
-  }, []);
+  const {
+    optIn: newsletterOptIn,
+    setOptIn: setNewsletterOptIn,
+  } = useNewsletterConsent();
 
   useEffect(() => {
     if (loading || user) return;
@@ -78,7 +71,7 @@ const WaitlistModal = () => {
         },
         body: JSON.stringify({
           email: trimmed,
-          newsletter: needsConsent ? newsletterOptIn : true,
+          newsletter: newsletterOptIn,
         }),
       });
 
@@ -86,7 +79,7 @@ const WaitlistModal = () => {
 
       if (data.success) {
         trackEvent("waitlist_join", {
-          newsletter: needsConsent ? newsletterOptIn : true,
+          newsletter: newsletterOptIn,
           page: window.location.pathname,
         });
         setStatus("success");
@@ -217,33 +210,11 @@ const WaitlistModal = () => {
                     {errorMessage}
                   </p>
                 )}
-                {needsConsent ? (
-                  <>
-                    <label className="mt-4 flex items-start gap-2.5 text-left text-xs text-white/60 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={newsletterOptIn}
-                        onChange={(e) => setNewsletterOptIn(e.target.checked)}
-                        className="mt-0.5 accent-emerald-500"
-                      />
-                      <span>
-                        Also send me newsletters from Froggo and its creator —
-                        practical insights on coding, AI, and shipping
-                        products, to stay on top of your field. (optional)
-                      </span>
-                    </label>
-                    <p className="mt-3 text-xs text-white/40">
-                      No spam. One email when we go live.
-                    </p>
-                  </>
-                ) : (
-                  <p className="mt-3 text-xs text-white/40">
-                    You&apos;ll also get newsletters from Froggo and its
-                    creator — practical insights on coding, AI, and shipping
-                    products, to stay on top of your field. No spam,
-                    unsubscribe anytime.
-                  </p>
-                )}
+                <NewsletterCheckbox
+                  checked={newsletterOptIn}
+                  onChange={setNewsletterOptIn}
+                  className="mt-4"
+                />
                 <button
                   type="button"
                   onClick={dismiss}

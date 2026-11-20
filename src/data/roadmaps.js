@@ -8,7 +8,7 @@ export const defaultRoadmaps = {
     description:
       "The 90 problems FAANG interviews actually repeat, ordered so each one builds on the last. One problem a day, from complete basics to the final boss, with Codeforces sprinkled in so you learn to solve, not memorize.",
     freeCopy:
-      "The full 90-day plan is free. Sign in to unlock problem links and track your streak — your progress syncs to your account.",
+      "The full 90-day plan is free. Enter your email to unlock every problem link — sign in to track your streak across devices.",
     primaryAction: "Start Day 1",
     crossLink: {
       href: "/development",
@@ -1169,7 +1169,7 @@ export const defaultRoadmaps = {
     description:
       "A project ladder that starts at a portfolio site and ends at a system you could defend in a FAANG system-design round. We give you the milestones, the structure, and hints when you're stuck — never the code. Every line you ship is yours.",
     freeCopy:
-      "All six project briefs are free. Sign in to unlock the step-by-step hints and track your milestones — progress syncs to your account.",
+      "All six project briefs are free. Enter your email to unlock the step-by-step hints — sign in to track your milestones across devices.",
     primaryAction: "Start Project 1",
     crossLink: {
       href: "/dsa",

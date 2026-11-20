@@ -3,26 +3,19 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/libs/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { locationService } from "@/libs/locationService";
+import NewsletterCheckbox, { useNewsletterConsent } from "@/components/NewsletterCheckbox";
 
 const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // In consent-required jurisdictions (EU/UK/EEA/CH) the newsletter is an
-  // explicit unchecked opt-in; everywhere else it's implied via the notice
-  const [needsConsent, setNeedsConsent] = useState(false);
-  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
+  const {
+    optIn: newsletterOptIn,
+    setOptIn: setNewsletterOptIn,
+  } = useNewsletterConsent(isOpen);
 
   const { signInWithGoogle } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isOpen) return;
-    locationService
-      .requiresMarketingConsent()
-      .then(setNeedsConsent)
-      .catch(() => setNeedsConsent(true));
-  }, [isOpen]);
 
   // Record the newsletter preference on the user doc, but only the first
   // time — a later plain sign-in must not overwrite an existing choice
@@ -38,7 +31,7 @@ const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
       await setDoc(
         userRef,
         {
-          newsletter: needsConsent ? newsletterOptIn : true,
+          newsletter: newsletterOptIn,
           newsletter_updated_at: new Date().toISOString(),
         },
         { merge: true }
@@ -183,34 +176,15 @@ const SignInModal = ({ isOpen, onClose, redirectOnSuccess = true }) => {
             {loading ? "Signing in..." : "Continue with Google"}
           </button>
 
-          {needsConsent ? (
-            <>
-              <label className="flex items-start gap-2.5 text-left text-sm text-gray-400 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={newsletterOptIn}
-                  onChange={(e) => setNewsletterOptIn(e.target.checked)}
-                  className="mt-1 accent-emerald-500"
-                />
-                <span>
-                  Send me newsletters from Froggo and its creator — practical
-                  insights on coding, AI, and shipping products, to stay on
-                  top of your field. (optional)
-                </span>
-              </label>
-              <div className="text-center text-sm text-gray-400">
-                By continuing, you agree to our Terms of Service and Privacy
-                Policy.
-              </div>
-            </>
-          ) : (
-            <div className="text-center text-sm text-gray-400">
-              By continuing, you agree to our Terms of Service and Privacy
-              Policy. You&apos;ll also get newsletters from Froggo and its
-              creator — practical insights to stay on top of your field.
-              Unsubscribe anytime.
-            </div>
-          )}
+          <NewsletterCheckbox
+            checked={newsletterOptIn}
+            onChange={setNewsletterOptIn}
+            className="text-sm text-gray-400"
+          />
+          <div className="text-center text-sm text-gray-400">
+            By continuing, you agree to our Terms of Service and Privacy
+            Policy.
+          </div>
         </div>
       </div>
     </div>

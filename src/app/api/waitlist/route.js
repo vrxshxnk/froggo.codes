@@ -8,6 +8,7 @@ import { adminDb } from '@/libs/firebaseAdmin';
 import { generalRateLimiter, checkRateLimit } from '@/libs/ratelimit';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SOURCES = new Set(['waitlist-modal', 'roadmap-dsa', 'roadmap-development']);
 
 function getClientIp(req) {
   const xff = req.headers.get('x-forwarded-for');
@@ -40,6 +41,7 @@ export async function POST(req) {
     const rawEmail = typeof body?.email === 'string' ? body.email : '';
     const email = rawEmail.trim().toLowerCase();
     const newsletter = body?.newsletter === true;
+    const source = SOURCES.has(body?.source) ? body.source : 'waitlist-modal';
 
     if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
       return NextResponse.json(
@@ -59,6 +61,7 @@ export async function POST(req) {
         {
           lastSeenAt: FieldValue.serverTimestamp(),
           submissionCount: FieldValue.increment(1),
+          sources: FieldValue.arrayUnion(source),
           // Never downgrade an existing subscription from a repeat signup
           ...(newsletter ? { newsletter: true, newsletterUpdatedAt: FieldValue.serverTimestamp() } : {}),
         },
@@ -73,7 +76,8 @@ export async function POST(req) {
         submissionCount: 1,
         ip,
         userAgent,
-        source: 'waitlist-modal',
+        source,
+        sources: [source],
       });
     }
 
