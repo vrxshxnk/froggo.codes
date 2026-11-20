@@ -24,9 +24,10 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), payment=(self \"https://checkout.razorpay.com\" \"https://api.razorpay.com\" \"https://buy.paddle.com\")",
   },
-  // Report-only while we confirm checkout and sign-in raise no violations in
-  // the browser console; switch the key to Content-Security-Policy after that
-  { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy },
+  // Enforced. Ran report-only first: page loads, the Google sign-in frame,
+  // Razorpay and Paddle checkout, Bunny embeds and the location lookups raised
+  // no violations. Adding a third party? Add its hosts above or it will break.
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
 ];
 
 /** @type {import('next').NextConfig} */
