@@ -1,0 +1,1 @@
+{"mode": "stdio", "cases": [{"in": "8\n", "out": "YES"}, {"in": "2\n", "out": "NO"}, {"in": "1\n", "out": "NO"}, {"in": "3\n", "out": "NO"}, {"in": "4\n", "out": "YES"}, {"in": "6\n", "out": "YES"}, {"in": "99\n", "out": "NO"}, {"in": "100\n", "out": "YES"}, {"in": "97\n", "out": "NO"}, {"in": "10\n", "out": "YES"}]}

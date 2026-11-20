@@ -1,0 +1,21 @@
+{
+  "fn": "isPalindrome",
+  "params": ["string"],
+  "returns": "bool",
+  "cases": [
+    {"in": ["A man, a plan, a canal: Panama"], "out": true},
+    {"in": ["race a car"], "out": false},
+    {"in": [" "], "out": true},
+    {"in": ["0P"], "out": false},
+    {"in": ["a."], "out": true},
+    {"in": ["ab_a"], "out": true},
+    {"in": [".,"], "out": true},
+    {"in": ["Was it a car or a cat I saw?"], "out": true},
+    {"in": ["1b1"], "out": true},
+    {"in": ["No 'x' in Nixon"], "out": true},
+    {"in": ["aA"], "out": true},
+    {"in": ["Ac2aAbbcacBbbA2a1bAcabBc11122ABbAb1BB11c,  C11bb1BaBba22111CbBACaB1A2aBBbCACBBaA2Ca"], "out": true},
+    {"in": ["c1B12AAB22A1Aba1ABcbA2baABbb2b1B1BAa2AAb.,.Baa2Aab1b1B2BBbaAB2aBCba1ABa1a22baa21b1C"], "out": true},
+    {"in": ["1b:.a:b,.a  bAA B,a.b,aB,::bb:A::,: ,:.B.baaa. A A:.,AaB, : "], "out": false}
+  ]
+}

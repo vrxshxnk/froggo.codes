@@ -1,0 +1,19 @@
+{
+  "fn": "minDistance",
+  "params": ["string", "string"],
+  "returns": "int",
+  "compare": "exact",
+  "cases": [
+    {"in": ["horse", "ros"], "out": 3},
+    {"in": ["intention", "execution"], "out": 5},
+    {"in": ["", ""], "out": 0},
+    {"in": ["", "abc"], "out": 3},
+    {"in": ["abc", ""], "out": 3},
+    {"in": ["abc", "abc"], "out": 0},
+    {"in": ["a", "b"], "out": 1},
+    {"in": ["kitten", "sitting"], "out": 3},
+    {"in": ["sunday", "saturday"], "out": 3},
+    {"in": ["bbaabaaa", "aaaaaba"], "out": 4},
+    {"in": ["cdaadccdececbcdedcbccbeeeaaebabcbacbbbceedccceaedcaeedbeacbdecbacadeebcbcbbaccbcdeecaadcaecebbecdebccbedbbbbcecaabeaecee", "ccaebddcddbdbbeeaaeedbbecbadccaceaaeebbedbcbdaacbbcdabdaecdbaceaecdbdadacedaeccdedcaabbaebedaaebbcbeeeaddcdcaa"], "out": 72}
+  ]
+}

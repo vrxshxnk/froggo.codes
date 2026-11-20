@@ -1,0 +1,19 @@
+{
+  "fn": "lengthOfLongestSubstring",
+  "params": ["string"],
+  "returns": "int",
+  "cases": [
+    {"in": ["abcabcbb"], "out": 3},
+    {"in": ["bbbbb"], "out": 1},
+    {"in": ["pwwkew"], "out": 3},
+    {"in": [""], "out": 0},
+    {"in": [" "], "out": 1},
+    {"in": ["dvdf"], "out": 3},
+    {"in": ["abba"], "out": 2},
+    {"in": ["au"], "out": 2},
+    {"in": ["tmmzuxt"], "out": 5},
+    {"in": ["a b!c d"], "out": 5},
+    {"in": ["bgaigbejafgbjdecaecacbjbcecgffgibaedighjgdbcibigacaajiagficjgjefghjfiabecaegcdiafjeafgjfbhdefiidjhgeecafaahjeiijagdjgjhaicdggabjhjgegjcdbjiebhafcejhgegafigaajbejjjbabhehhhjjcgjhjbcdcbdfaicaiiebidbdghc"], "out": 9},
+    {"in": ["w1hwd7IeHxCdBxJktwt8r9ngGzc!7od1z7Aa5gBg3hIpj4tJE E?zn7G391k175pCrCcH0Ad9gzy2aC!8908CrAvkHb7Hl4h5hHkDDj49JIG!vpr!JFAapE!tfbaJBk 43dmkcCfoxEEqrr5ziyd11ggtGszoF9c9t5 cqGrJ4eHojClj6md9htwxtmzHki6!BjnCBrH8dmq0daIDwtI00p?05IDkqcsp75145lJh8gdpBdpxC7yeE  jlApf?Jyp!ovsxzr5EHe4fisv?Aovgar7BJwJenxxmy trJ?flBg"], "out": 18}
+  ]
+}

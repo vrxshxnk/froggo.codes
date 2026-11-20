@@ -1,4 +1,5 @@
 import RoadmapPage from "@/components/RoadmapPage";
+import { getPrimerIds, getWalkthroughMap } from "@/libs/dsaContent";
 
 const title = "90-Day DSA Roadmap — 90 Problems, 1 a Day | FroggoCodes";
 const description =
@@ -12,5 +13,5 @@ export const metadata = {
 };
 
 export default function DsaPage() {
-  return <RoadmapPage slug="dsa" />;
+  return <RoadmapPage slug="dsa" walkthroughs={getWalkthroughMap()} primers={getPrimerIds()} />;
 }

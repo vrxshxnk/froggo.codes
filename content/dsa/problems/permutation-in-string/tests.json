@@ -1,0 +1,19 @@
+{
+  "fn": "checkInclusion",
+  "params": ["string", "string"],
+  "returns": "bool",
+  "cases": [
+    {"in": ["ab", "eidbaooo"], "out": true},
+    {"in": ["ab", "eidboaoo"], "out": false},
+    {"in": ["abc", "ab"], "out": false},
+    {"in": ["a", "a"], "out": true},
+    {"in": ["adc", "dcda"], "out": true},
+    {"in": ["hello", "ooolleoooleh"], "out": false},
+    {"in": ["aab", "abab"], "out": true},
+    {"in": ["aab", "aba"], "out": true},
+    {"in": ["xyz", "zzzyyyxxx"], "out": false},
+    {"in": ["babbba", "cbbbcbacabacbbacaacbabbbbbccabcbbbcacccabbabcaaccbaaaaaaaaacaabccbbcaaaabbbbcabababbabccbbcccbaacbbbbcbbbcbbbbcbaacabaacabbabbabcbbaaaccbbaaabacbbaaaaacacbbcbcabacbccacaacbbacaccbcabbacacbccbcbacccbcbbacabcbabccbbccbbaabbbabbbbacbaacbacbbbaabbbcabcbaaaaacabcccababcbccbacccabcaaccccbcababbbcbccabcbbcabbcccbabcbcbabcbaabacccbaaabcbabbcbcabaaaaaccbabbaaaacbacbabaaaccccbcaccccbbccbaccbbbbabcaacbbbccab"], "out": true},
+    {"in": ["wmpcxzdaexpy", "vxsdfkeutfrtpgunbttzbyobxybsbfrvvoherqucmupmuzyljgyikwutrpvemugtggbqrkbcjbtpkhnpupilskntkpndmfmkyrexxxyacjnrgqpmyrkrbrsfzmebdbvliqdlivvyaftvewmnwlffynbwsruxksroekmhsmdulwqqkpucihvqkhngufsqzpbglbrwqnvsfqihbxnwxdghhppvhazwpwwrlirckyybmfremmebmhlcieicdceuoiyhtbiuctcccbprepylntguscrbanhpvyaxjtnggttkvwcpcxewpzxyamdpxnixjpogktymzqfkvmabpwxgbvjqhnfsqulbnqgxhrblbxohgsrhtsmpegayihhgsecgjtoapamniehesjbkaqmwototmdomhfdmgzlxxtzqnqtvbgytpyqwpzdfucughzvtedlnubduvudjvsmframatzfarcmpmkffajcqzhahcnoslwiinewmtybl"], "out": true},
+    {"in": ["abcdefghijk", "ckfjchejafebfbkbeacediiikahhjefjbcdgibfeddbkdgdgdcegegiabbaaihghiachiiadfkedijidcajeiihcggjajbbhadbjbekakfhbjahfbedkgahaifkeagjhihicbedijgghiecbdhkedhjcgdjadfkbchjcegdjhgjjdbijcaihaebegihkhbfgcbihbgfdegibjdgakbikigbgkedjaijkbgkabkdjgicifdckeekbjdibciegfahkbcggagegidhajcahcaighihaedkcbdadhgaejadgghacgffcchefdcfdbaeieijdbbegfkfiggakkhefhbekfhfigdjeagdkccdadcbkddbhbdgbdiecfajcidfehebebkedbkejfejgkehh"], "out": false}
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "fn": "wordBreak",
+  "params": ["string", "string-list"],
+  "returns": "bool",
+  "compare": "exact",
+  "cases": [
+    {"in": ["leetcode", ["leet", "code"]], "out": true},
+    {"in": ["applepenapple", ["apple", "pen"]], "out": true},
+    {"in": ["catsandog", ["cats", "dog", "sand", "and", "cat"]], "out": false},
+    {"in": ["a", ["b"]], "out": false},
+    {"in": ["a", ["a"]], "out": true},
+    {"in": ["aaaaaaa", ["aaaa", "aaa"]], "out": true},
+    {"in": ["cars", ["car", "ca", "rs"]], "out": true},
+    {"in": ["bb", ["a", "b", "bbb", "bbbb"]], "out": true},
+    {"in": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", ["a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa"]], "out": false},
+    {"in": ["goalspecial", ["go", "goal", "goals", "special"]], "out": true},
+    {"in": ["cdbcdabcabddabdababccddabdabcacdbcdabcdcacdabcbcdcadcdabcbcdabccdcaabcdababcabdabcabbcdabcdddab", ["ab", "abc", "cd", "bcd", "d", "dab", "ca"]], "out": true},
+    {"in": ["cdbcdabcabddabdababccddabdabcacdbcdabcdcacdabcbcdcadcdabcbcdabccdcaabcdababcabdabcabbcdabcdddabb", ["ab", "abc", "cd", "bcd", "dab", "ca"]], "out": false}
+  ]
+}

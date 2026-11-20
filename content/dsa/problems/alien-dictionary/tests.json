@@ -1,0 +1,20 @@
+{
+  "fn": "alienOrder",
+  "params": ["string[]"],
+  "returns": "string",
+  "compare": "exact",
+  "cases": [
+    {"in": [["wrt", "wrf", "er", "ett", "rftt"]], "out": "wertf"},
+    {"in": [["z", "x"]], "out": "zx"},
+    {"in": [["z", "x", "z"]], "out": ""},
+    {"in": [["abc", "ab"]], "out": ""},
+    {"in": [["z", "z"]], "out": "z"},
+    {"in": [["ab", "abc"]], "out": "abc"},
+    {"in": [["a"]], "out": "a"},
+    {"in": [["ac", "ab", "zc", "zb"]], "out": "acbz"},
+    {"in": [["qpmq", "qaak", "k", "kqmp", "kx", "xaq", "xamx", "m", "maq", "p", "pk", "aqq"]], "out": "qkxmpa"},
+    {"in": [["h", "hb", "ha", "g", "gah", "fca", "e", "efahg", "eechg", "ec", "dfaca", "dbf", "chde", "cfh", "cbfce", "cbch", "cagb", "bf", "bchc", "bbfce", "baggc", "a", "ageg", "acec", "aaehd"]], "out": "hgfedcba"},
+    {"in": [["ba", "bc", "ac", "cab"]], "out": "bac"},
+    {"in": [["abc", "abd", "abc"]], "out": ""}
+  ]
+}

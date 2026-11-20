@@ -1,0 +1,18 @@
+{"fn": "isValidBST", "params": ["TreeNode"], "returns": "bool", "compare": "exact",
+  "cases": [
+    {"in": [[2, 1, 3]], "out": true},
+    {"in": [[5, 1, 4, null, null, 3, 6]], "out": false},
+    {"in": [[5, 4, 6, null, null, 3, 7]], "out": false},
+    {"in": [[1, 1]], "out": false},
+    {"in": [[2147483647]], "out": true},
+    {"in": [[-2147483648]], "out": true},
+    {"in": [[-2147483648, null, 2147483647]], "out": true},
+    {"in": [[2147483647, 2147483647]], "out": false},
+    {"in": [[-2147483648, -2147483648]], "out": false},
+    {"in": [[-2147483648, null, -2147483648]], "out": false},
+    {"in": [[0, -2147483648, 2147483647]], "out": true},
+    {"in": [[2147483647, -2147483648, null, null, 2147483647]], "out": false},
+    {"in": [[-928927, -985942, 217860, null, -945571, 117227, 312863, -953031, -938240, -74071, 203033, 292944, 857575, -973868, null, null, null, -140544, 43941, 192713, null, 255186, 293179, 522553, 912312, null, -964583, -303258, -110093, 34398, 85540, null, null, null, null, null, 295539, 505761, 632438, null, 976071, null, null, -479321, -145187, null, null, null, null, 48115, 93347, null, null, 403170, null, 587783, 647967, 930964, null, -814533, -452346, -204457, null, 44934, 68352, null, null, 317980, 472112, 539915, null, null, 703394, null, null, -816546, -764287, null, -344668, null, null, null, null, null, 83123, null, null, null, null, null, null, 684691, 795663, -892652, null, null, -630763, null, null, null, null, null, null, 788478, null, null, null, -732048, -609305, null, null, null, -649512, null, null, -696374, null, -699199]], "out": true},
+    {"in": [[-928927, -985942, 217860, null, -945571, 117227, 44934, -953031, -938240, -74071, 203033, 292944, 857575, -973868, null, null, null, -140544, 43941, 192713, null, 255186, 293179, 522553, 912312, null, -964583, -303258, -110093, 34398, 85540, null, null, null, null, null, 295539, 505761, 632438, null, 976071, null, null, -479321, -145187, null, null, null, null, 48115, 93347, null, null, 403170, null, 587783, 647967, 930964, null, -814533, -452346, -204457, null, 312863, 68352, null, null, 317980, 472112, 539915, null, null, 703394, null, null, -816546, -764287, null, -344668, null, null, null, null, null, 83123, null, null, null, null, null, null, 684691, 795663, -892652, null, null, -630763, null, null, null, null, null, null, 788478, null, null, null, -732048, -609305, null, null, null, -649512, null, null, -696374, null, -699199]], "out": false}
+  ]
+}

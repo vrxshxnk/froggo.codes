@@ -1,0 +1,13 @@
+{
+  "fn": "groupAnagrams",
+  "params": ["string[]"],
+  "returns": "string[][]",
+  "compare": "unordered-groups",
+  "cases": [
+    { "in": [["eat", "tea", "tan", "ate", "nat", "bat"]], "out": [["bat"], ["nat", "tan"], ["ate", "eat", "tea"]] },
+    { "in": [[""]], "out": [[""]] },
+    { "in": [["a"]], "out": [["a"]] },
+    { "in": [["", "b", ""]], "out": [["", ""], ["b"]] },
+    { "in": [["abc", "bca", "cab", "xyz", "zyx", "aaa"]], "out": [["abc", "bca", "cab"], ["xyz", "zyx"], ["aaa"]] }
+  ]
+}

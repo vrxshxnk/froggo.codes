@@ -1,0 +1,13 @@
+{
+  "fn": "containsDuplicate",
+  "params": ["int[]"],
+  "returns": "bool",
+  "cases": [
+    { "in": [[1, 2, 3, 1]], "out": true },
+    { "in": [[1, 2, 3, 4]], "out": false },
+    { "in": [[1, 1, 1, 3, 3, 4, 3, 2, 4, 2]], "out": true },
+    { "in": [[7]], "out": false },
+    { "in": [[-1, 0, 1, -1]], "out": true },
+    { "in": [[0, -0]], "out": true }
+  ]
+}

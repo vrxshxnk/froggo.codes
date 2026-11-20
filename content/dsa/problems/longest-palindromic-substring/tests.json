@@ -1,0 +1,19 @@
+{
+  "fn": "longestPalindrome",
+  "params": ["string"],
+  "returns": "string",
+  "compare": "exact",
+  "cases": [
+    {"in": ["babad"], "out": "bab"},
+    {"in": ["cbbd"], "out": "bb"},
+    {"in": ["a"], "out": "a"},
+    {"in": ["ac"], "out": "a"},
+    {"in": ["aaaa"], "out": "aaaa"},
+    {"in": ["forgeeksskeegfor"], "out": "geeksskeeg"},
+    {"in": ["abacdfgdcaba"], "out": "aba"},
+    {"in": ["xy1221yzQ"], "out": "y1221y"},
+    {"in": ["racecar"], "out": "racecar"},
+    {"in": ["bbbabbbbaaabaaabbbbaababaabaaabbbababababbbabbbbbb"], "out": "abbbbaaabaaabbbba"},
+    {"in": ["ccacbbccbcbbbbbbabaabaacbbbbccbccbbabbcacbbbcbcabaccbcbbcaaacaaacabcbbbabbbbbbaaccabaacaccbaacaababbaacaaccacbcacbabacaccbaacaaacaacccabbaccaaccaaccaabcaabbaacccaabcbbaaabccbcabaccabbabbacaabbaccacababccbcbcabcbcaaabcabacccaaaabaaacccbcbcabcbaabbbaababcccabbbabcccbbbabbabbbabacbcaaabacbbcbacaabcbbba"], "out": "accaaccaacca"}
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "fn": "longestCommonSubsequence",
+  "params": ["string", "string"],
+  "returns": "int",
+  "compare": "exact",
+  "cases": [
+    {"in": ["abcde", "ace"], "out": 3},
+    {"in": ["abc", "abc"], "out": 3},
+    {"in": ["abc", "def"], "out": 0},
+    {"in": ["a", "a"], "out": 1},
+    {"in": ["bsbininm", "jmjkbkjkv"], "out": 1},
+    {"in": ["ezupkr", "ubmrapg"], "out": 2},
+    {"in": ["dcdddbdaaada", "abcdddddaacabd"], "out": 9},
+    {"in": ["zzzyyyxyzz", "zxyxyzxzx"], "out": 6},
+    {"in": ["gfbcgdabhbccdcbcbdfgeeahffdhgefeeadbdgehaachbcegfabhcdhbccgdcfacfcdbcdeaedbcafghdafhafaabedbehcdfacegaegdcgchgbcfggfdhccffghfdfbhhaaheebeeaefcdcdggecgchbdgcdgaebdabedebffeeaggfcbcgbgfcchhdhhbfeacacdgaggagefefbcehecadcdabdgcedcdghhddgffeffehcdeaebbghhbdbfhhbceadaedgfchdghebhegedghgebdfbafaedfbfgdghdd", "eeaecgceahebdbcggheagahcfagcgbghhaabhcaccbffhacfgddbeaghbfaefhedgebeafbaagfcccdbebefgbcagffaafchcbdbcdfdfhbdhgdeebggfgcehgecdeagbaaedegagegffcbahgheebdghebagdcaagcafgefahfbbcahaaedhbbghececfcgafhbaaebagafefgeccdegfccbceacbbcchbfededahabhbeeagcbbeacbhdgedabegbdhgafbhcabedbcghfeecf"], "out": 150},
+    {"in": ["fbccgfcbadfeedeccegghgfhfhccdcbfbedfabgfebeebcgddfcdeahefbchaeheghhcefacchefcdedcehfbhgahaeaeehchhhcdaebehddadeahffchhdfdhhchefadghecbhfeabafadghcfhagchbcbhfdgdhdahhdcecfegcgfffgebfcaeaefggfhcgfaegdhhcagddcfhghaeehdaacffccfcfgafgahfggegagdbcgbaaggdhgbfbdeffcbebhbgbeaabhdeadbbccdfcbegaaggdbfgafbaeeea", "hadehaaeaacfbehhebecdafbcddddfbdghgcgahgfbhcchhgagbbdaedfaaagdfccdadhfdgedhffaaabecgcecdhbggbbggahacaeaffcdhhccfhbebgecbfbcfbcbdeefeefbghbefbbaahagahdcfdddahdddhahbeebhhdfcaeadcecbaheedghaabadhcfbeacfggfgfcbhbgfchahafdbddcdcggccehdbdaghfhfgcgebdbgccbabeebcehfaaabehchebccecfgcaeae"], "out": 144}
+  ]
+}

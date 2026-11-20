@@ -68,6 +68,8 @@ const ModuleCard = ({
   toggleItem,
   toggleHint,
   onUnlockClick,
+  walkthroughs = {},
+  hasPrimer = false,
 }) => {
   const done = module.items.filter(
     (item) => completed[`${module.id}:${item.id}`]
@@ -96,6 +98,15 @@ const ModuleCard = ({
             <p className="mt-2.5 max-w-3xl text-sm leading-6 text-white/65">
               {module.focus}
             </p>
+            {hasPrimer ? (
+              <Link
+                href={`/dsa/patterns/${module.id}`}
+                className="mt-3 mr-4 inline-flex items-center gap-1.5 text-sm font-bold text-cyan-300 transition hover:text-cyan-200 hover:underline"
+              >
+                Read the pattern primer first
+                <span aria-hidden="true">→</span>
+              </Link>
+            ) : null}
             {module.guide ? (
               <Link
                 href={module.guide}
@@ -220,6 +231,14 @@ const ModuleCard = ({
                       Open
                     </a>
                   )}
+                  {walkthroughs[item.id] && (
+                    <Link
+                      href={`/dsa/${walkthroughs[item.id]}`}
+                      className="rounded-lg border border-emerald-300/30 bg-emerald-300/[0.06] px-3.5 py-1.5 text-center text-sm font-bold text-emerald-100 transition hover:border-emerald-300/60 hover:bg-emerald-300/[0.12]"
+                    >
+                      Walkthrough
+                    </Link>
+                  )}
                   {item.hint && (
                     <button
                       onClick={() => toggleHint(key)}
@@ -243,7 +262,7 @@ const ModuleCard = ({
   );
 };
 
-const RoadmapPage = ({ slug }) => {
+const RoadmapPage = ({ slug, walkthroughs = {}, primers = [] }) => {
   const { user, loading } = useAuth();
   const [roadmap, setRoadmap] = useState(() => getDefaultRoadmap(slug));
   const [completed, setCompleted] = useState({});
@@ -816,6 +835,8 @@ const RoadmapPage = ({ slug }) => {
                 toggleItem={toggleItem}
                 toggleHint={toggleHint}
                 onUnlockClick={() => setIsEmailGateOpen(true)}
+                walkthroughs={walkthroughs}
+                hasPrimer={primers.includes(module.id)}
               />
             ))}
 
@@ -878,6 +899,8 @@ const RoadmapPage = ({ slug }) => {
                         toggleItem={toggleItem}
                         toggleHint={toggleHint}
                         onUnlockClick={() => setIsEmailGateOpen(true)}
+                        walkthroughs={walkthroughs}
+                        hasPrimer={primers.includes(module.id)}
                       />
                     ))}
                   </div>

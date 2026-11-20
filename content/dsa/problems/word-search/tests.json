@@ -1,0 +1,19 @@
+{
+  "fn": "exist",
+  "params": ["char[][]", "string"],
+  "returns": "bool",
+  "cases": [
+    {"in": [[["A", "B", "C", "E"], ["S", "F", "C", "S"], ["A", "D", "E", "E"]], "ABCCED"], "out": true},
+    {"in": [[["A", "B", "C", "E"], ["S", "F", "C", "S"], ["A", "D", "E", "E"]], "SEE"], "out": true},
+    {"in": [[["A", "B", "C", "E"], ["S", "F", "C", "S"], ["A", "D", "E", "E"]], "ABCB"], "out": false},
+    {"in": [[["a"]], "a"], "out": true},
+    {"in": [[["a"]], "b"], "out": false},
+    {"in": [[["a", "b"], ["c", "d"]], "abdca"], "out": false},
+    {"in": [[["A", "B", "C", "E"], ["S", "F", "E", "S"], ["A", "D", "E", "E"]], "ABCESEEEFS"], "out": true},
+    {"in": [[["C", "A", "A"], ["A", "A", "A"], ["B", "C", "D"]], "AAB"], "out": true},
+    {"in": [[["a", "a"]], "aaa"], "out": false},
+    {"in": [[["a", "b"], ["c", "d"]], "acdb"], "out": true},
+    {"in": [[["a", "b", "A", "a"], ["A", "a", "a", "b"], ["B", "a", "A", "a"], ["a", "b", "b", "A"]], "AbbaB"], "out": true},
+    {"in": [[["a", "b", "A", "a"], ["A", "a", "a", "b"], ["B", "a", "A", "a"], ["a", "b", "b", "A"]], "AbbaBB"], "out": false}
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "fn": "minWindow",
+  "params": ["string","string"],
+  "returns": "string",
+  "compare": "exact",
+  "cases": [
+    {"in":["ADOBECODEBANC","ABC"],"out":"BANC"},
+    {"in":["a","a"],"out":"a"},
+    {"in":["a","aa"],"out":""},
+    {"in":["aa","aa"],"out":"aa"},
+    {"in":["ab","b"],"out":"b"},
+    {"in":["abc","d"],"out":""},
+    {"in":["bba","ab"],"out":"ba"},
+    {"in":["aaflslflsldkalskaaa","aaa"],"out":"aaa"},
+    {"in":["cabwefgewcwaefgcf","cae"],"out":"cwae"},
+    {"in":["acbbaca","aba"],"out":"baca"},
+    {"in":["ab","A"],"out":""},
+    {"in":["EedaDeDcbEBBCDeDDBBEdbbAAbAaebdCcEdBdEaDcBbcbadaBBdCADcADBAADaeCbDaeDdDBDDBdbADcbBEeEECEceEBEbaEBadBdEebaecBdabCCEeEdAbCbdDcDbdEdEEBAadEDCebCDAEAcbEDCAcadaECBEcAdACBbDbAedaAeadCbDdbbbCcEbABDcDEbEccDdbccdacDADCCCBBcdebedBdCEeDDDcCbaeadeAdCbEadBCDcdCDCbddDbCdDcCAbEBbCddaCCcbBCcDaaCEccAaAdbcBdaCdBCbCdbadAAeCbdDcedCAdBEdBECCcEeDBBcADCbeaecBaCeBbeAebebdCBBeCEdcEAbEdDEcBCEdcacbcAcdbDAedDEddaCACebeBdebeCbBDcCcdDaBaBDAacBBBBEDAeECacdEcBeCAbaadDbEcdedbeBbbAeecDEeEdCabdabCBCBAEdDDEacecDdbbddcAceeBbDDABAedeCEaAECDcAACeBCaaCeEdcbCcebDBBcCdCeaaeDDDaDaAaceEacBbbDCcBEbcAecAdeEaeeECcCADbDaBeAabBAdCAAcebbaEEBcCCCceBBCBAeAcbdCcCbbEeAeadEdDcEEEEBacebdeEDCbebDDCDCDceCACACaAaceEcEaACCCDBeEAcbAbcCDdbeCEBccDAcAdbECdCDaeDaabDdAEaaCABDdDcaeCECdDaBDDEECACdEcEdBECccCEcDdbBECeADccDDCdcACACEdbdDeDccdEdbdeBaAdeCbEeBceb","cDdEcbA"],"out":"cDAcAdbE"},
+    {"in":["dcEacdaeeCDbdEBcbEEACdEcbCbEEDBaADBcEeeADecdeecaDDaEBbAdBedDECAEaadDEAACcdBdBBAEeeCBDbAbdCaAcbADaDECCEeEeBeeBEaBccaCEEeECCddeDAEeaCaADbECcaACdedccEEeDCDAddCECDCEeACcCbCbCCAEbDADbdaBDCAeDDeeEcbBaEEAbaeABABBDAEbcaeeeAaCBdecCBCEcABcbCDCAaBAEcEcEbdDADbBCeEBbECDDdEecbDebAcAdBCAceaEBADbBCeaCAACAdccdbEcabcAcDCAaeDEAeadEbbCAAcAebeACEEaDdCaAEcdeBecDcAcdbAdBdCCAbCBCBAEEAdBcdEaeCdADcDCbAAeeDDabdAceCcdbAdAdBedacbbBeAEDbdbDEebAAaaCeaDdCcbDcbBBDAEEECeCCcAaCaccCBEBbbceAaccaCABbCaEDeEACeDcEcaBEcabCBdDcAbcdeaBdBAEBdCCEACbbCeadbAadecCbbCaBcBCBbEADAaDbDdAcCdCdadEDAeBcDDaecAbdadaDEceaBcBeCEBAeCcdaedAEAdbeaAEeeDBCDEeBECcdbdAEEBcbBEadBeCAdbDDCAeadCEDaBadbABdbCADaBeceaCADdeaacCEaCbcbbeDbAAabBdCCeabBEBcBeceDeECCCBeEBedCADcddcBBcAaDeBbBcABABeBCdbBbECDbEEADBBDDBEEbEAeaaDdDaaceaeDBaDBBCecBEDECABBBeDeAbebEbCbbcDBcbde","eddac"],"out":"cdaed"},
+    {"in":["EbEEBdeaBEeAaaBAdDAbeDdaDDAdedCACbdcDBBbccAEDBAaDbaDbAaCcCdEedDAddEdeEedDdAaeEAaDcBbDEAaAAdadeeedCBADEcBbCADCcdbdBeaDbaDBdEBDCeCBbbABDBAECDDBDbcaDCCdcdCaddcBBbBacCBEADDcbdbbeaAEcdDeadcBedEdBcbdBDebDBbEAEDbCdecAEAEadEAEcAeBDBCAbcBBeDDEDBBcdEABdbbeEbBCDAdcEBCBBBEaaEDecbddBCBbDBaAbCbDBAAdCcbCcBEBCCacDBcaCAcBeCDEacebEbbeacabBACbecaadECaBAEEdCbCaeeaabcDDbaBECAeAeAbaacDbeeEdbBaaddacCBEDBdbdbcBdAabaBDADBBdAECBEcDEEDaAAeBeCDBbeEdeaEbaEdDDcBdeccBcECbcaCEDEAbcdaECdAEdEEbCDcddDcaDCEaaBbdCAbcdBaccaeEabaDCeEbeeCdedEadDBbbBdaAbBccDEdCcbEECCcDDCaEDECdBbeAcABaDaEbAEeaCaDDadcBeDCebBacCDBAbDADBAbcaDCDaAddcEeAEcBEdCaeaDbdCcaDaEEDeeaCDaeaCbCcCBbBaAedebaDADdAdEeccAdBcdaAebADcDDeceddaDCACEcdeABdBBDaBEdDddbaDCBCaeeaBbeCcccCaCeAcEaceCbcbAbbebebddccDCcdccBdCEdAcEeddeAbbaEcEaeaCccbADaebDdCedcddeedeEaDaecaBDcBEebeEE","bdebCa"],"out":"bADaebDdC"}
+  ]
+}
