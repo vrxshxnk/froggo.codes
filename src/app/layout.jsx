@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 const description =
-  "Free 90-day DSA roadmap and 6 real projects, one step a day. Track your streak and get interview ready with FroggoCodes.";
+  "Free 90-day DSA roadmap and 7 real projects, one step a day. Track your streak and get interview ready with FroggoCodes.";
 
 export const metadata = {
   metadataBase: new URL("https://www.froggo.codes"),

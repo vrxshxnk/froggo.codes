@@ -1,8 +1,9 @@
 import RoadmapPage from "@/components/RoadmapPage";
+import { getDevBriefIds, getDevGuideMap } from "@/libs/devContent";
 
-const title = "Development Roadmap — 6 Projects, Zero Copy-Paste | FroggoCodes";
+const title = "Development Roadmap — 7 Projects, Zero Copy-Paste | FroggoCodes";
 const description =
-  "Six projects of increasing depth up to a FAANG-level capstone. Milestones, structure, and hints — never the code. Free forever with progress tracking.";
+  "Seven projects of increasing depth, including an AI app with RAG, up to a FAANG-level capstone. Milestones, structure, and hints — never the code. Free forever with progress tracking.";
 
 export const metadata = {
   title,
@@ -12,5 +13,5 @@ export const metadata = {
 };
 
 export default function DevelopmentPage() {
-  return <RoadmapPage slug="development" />;
+  return <RoadmapPage slug="development" guides={getDevGuideMap()} briefs={getDevBriefIds()} />;
 }

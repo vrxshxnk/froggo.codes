@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { getPrimerIds, getProblemSlugs } from "@/libs/dsaContent";
+import { getDevBriefIds, getDevMilestoneParams } from "@/libs/devContent";
 
 const siteUrl = "https://www.froggo.codes";
 
@@ -32,6 +33,8 @@ export default function sitemap() {
     { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.7 },
     ...getPrimerIds().map((id) => ({ url: `${siteUrl}/dsa/patterns/${id}`, changeFrequency: "monthly", priority: 0.7 })),
     ...getProblemSlugs().map((slug) => ({ url: `${siteUrl}/dsa/${slug}`, changeFrequency: "monthly", priority: 0.7 })),
+    ...getDevBriefIds().map((id) => ({ url: `${siteUrl}/development/${id}`, changeFrequency: "monthly", priority: 0.7 })),
+    ...getDevMilestoneParams().map(({ project, milestone }) => ({ url: `${siteUrl}/development/${project}/${milestone}`, changeFrequency: "monthly", priority: 0.6 })),
     ...blogEntries(),
     { url: `${siteUrl}/privacy-policy`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${siteUrl}/tos`, changeFrequency: "yearly", priority: 0.2 },

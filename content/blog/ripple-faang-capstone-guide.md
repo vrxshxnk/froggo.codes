@@ -1,5 +1,5 @@
 ---
-title: "Project 6: Ripple — Building a System-Design Answer That Actually Runs"
+title: "Project 7: Ripple — Building a System-Design Answer That Actually Runs"
 excerpt: "The full build guide for the FAANG-level capstone of our Development Roadmap. Fan-out strategies, Redis invalidation, queues, idempotency keys, observability — and the writeup that gets you the interview."
 date: "2026-07-14"
 author: "Froggo"
@@ -9,7 +9,7 @@ featured: true
 
 There's a strange gap in how this industry hires. System-design interviews decide senior-track offers, yet almost everyone prepares for them the same way: watching videos of other people drawing boxes. Candidates learn to *say* "we'd use a hybrid fan-out strategy" without ever having watched a push-model feed melt under a popular account, because they've never run one.
 
-Ripple — [Project 6, the capstone of the Development Roadmap](/development) — closes that gap by brute force. It's a scalable social platform: media uploads with background processing, a feed with an explicit fan-out strategy, Redis caching, queues, rate limiting, and observability. Twelve milestones over four weeks. When it's done, your system-design answers stop being recitations and become anecdotes. Interviewers can tell the difference in about ninety seconds.
+Ripple — [Project 7, the capstone of the Development Roadmap](/development) — closes that gap by brute force. It's a scalable social platform: media uploads with background processing, a feed with an explicit fan-out strategy, Redis caching, queues, rate limiting, and observability. Twelve milestones over four weeks. When it's done, your system-design answers stop being recitations and become anecdotes. Interviewers can tell the difference in about ninety seconds.
 
 ## Deliverable #1 is a document, and that's not a warm-up
 

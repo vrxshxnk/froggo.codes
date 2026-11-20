@@ -15,8 +15,8 @@ const roadmapCards = [
     eyebrow: "Build. Don't Copy.",
     title: "The Development Roadmap",
     description:
-      "Six projects of increasing depth, ending at a FAANG-level capstone. You get milestones, structure, and hints — never the code. Every line is yours.",
-    highlights: ["6 real projects", "Step-by-step hints", "FAANG-level capstone"],
+      "Seven projects of increasing depth, including an AI app with RAG, ending at a FAANG-level capstone. You get milestones, structure, and hints — never the code. Every line is yours.",
+    highlights: ["7 real projects", "Step-by-step hints", "FAANG-level capstone"],
     cta: "Start Project 1",
   },
 ];

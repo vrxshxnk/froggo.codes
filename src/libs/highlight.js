@@ -6,7 +6,7 @@ let highlighterPromise;
 function getHighlighter() {
   highlighterPromise ??= createHighlighter({
     themes: ["github-dark-default"],
-    langs: ["python", "cpp", "java", "javascript", "text"],
+    langs: ["python", "cpp", "java", "javascript", "text", "json", "bash", "sql", "html", "css", "jsx", "typescript", "tsx", "yaml"],
   });
   return highlighterPromise;
 }

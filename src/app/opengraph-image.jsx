@@ -8,6 +8,6 @@ export default function Image() {
   return renderOgImage({
     eyebrow: "FroggoCodes 🐸",
     title: "Learn to code. Get interview ready.",
-    subtitle: "Free 90-day DSA roadmap + 6 real projects. Track your streak.",
+    subtitle: "Free 90-day DSA roadmap + 7 real projects. Track your streak.",
   });
 }

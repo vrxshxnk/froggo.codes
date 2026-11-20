@@ -77,4 +77,4 @@ Lilypad Market is proof you can build systems where consistency matters: server-
 
 ---
 
-**Ready to build it?** All ten milestones with hints are on the [Development Roadmap](/development) — free, sign in to track progress. Previously: [Project 4, Huddle](/blog/huddle-realtime-chat-guide). Next, the finale: [Project 6, Ripple](/blog/ripple-faang-capstone-guide) — a system-design interview answer that actually runs.
+**Ready to build it?** All ten milestones with hints are on the [Development Roadmap](/development) — free, sign in to track progress. Previously: [Project 4, Huddle](/blog/huddle-realtime-chat-guide). Next: [Project 6, Pondr](/development/ai-assistant), an AI study assistant with RAG, tool calling and evals. Then the finale, [Project 7, Ripple](/blog/ripple-faang-capstone-guide): a system-design interview answer that actually runs.
